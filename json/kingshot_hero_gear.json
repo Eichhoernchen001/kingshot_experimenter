@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "title": "Kingshot hero gear stat lookup for simulator injection",
+  "simulator_stat_units": "percentage points added to hero.stats for the matching battle side and hero troop type",
+  "notes": [
+    "Hero gear is configured separately for attacker and defender.",
+    "The attacker and defender values are currently identical max-gear values and can be changed independently later.",
+    "When ADD_HERO_GEAR_ATK/DEF is True, these values are applied to every verified hero profile according to battle side and hero troop type.",
+    "Prepared hero stats are rebuilt from lookup values, so gear is never accumulated repeatedly onto an already prepared JSON.",
+    "inf = Infantry, lanc = Cavalry, mark = Archers."
+  ],
+  "gear_by_side": {
+    "attacker": {
+      "inf": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      },
+      "lanc": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      },
+      "mark": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      }
+    },
+    "defender": {
+      "inf": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      },
+      "lanc": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      },
+      "mark": {
+        "attack": 200.0,
+        "defense": 200.0,
+        "lethality": 300.0,
+        "health": 300.0
+      }
+    }
+  }
+}

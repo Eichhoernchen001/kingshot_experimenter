@@ -1,0 +1,5508 @@
+{
+  "schema_version": 1,
+  "title": "Kingshot internal hero data (stars + Exclusive Gear/widget data)",
+  "verified_on": "2026-09-13",
+  "notes": [
+    "Star progression stores the published 31 Expedition ATK/DEF states from the relevant KingshotData hero/generation tables (0-star through 5-star max in the UI).",
+    "Only additive Expedition hero stats are represented here. Hero talents and Expedition skill/buff effects are intentionally excluded.",
+    "Exclusive Gear/widget passive Lethality and Health are separate from the active widget Expedition skill. The active skill unlocks at Exclusive Gear level 2 and ranks up at levels 4, 6, 8 and 10."
+  ],
+  "sources": {
+    "star_ladders": "https://kingshotdata.com/heroes/",
+    "comparison_tool": "https://kingshot.net/hero-stat-comparison",
+    "exclusive_gear": "https://ks-toolkit.com/data/heroes/",
+    "hero_gear_stats": "https://kingshotoptimizer.com/hero-gear/references/stat-bonuses/",
+    "hero_gear_imbuement": "https://kingshotoptimizer.com/hero-gear/references/imbuement-costs/"
+  },
+  "heroes": {
+    "Amadeus": {
+      "canonical_name": "Amadeus",
+      "simulator_name": "Amadeus",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 260.21,
+        "defense": 260.21
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 62.5,
+          "health": 62.5
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/amadeus",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/amadeus/",
+      "star_progression": [
+        {
+          "attack": 32.83,
+          "defense": 32.83
+        },
+        {
+          "attack": 35.88,
+          "defense": 35.88
+        },
+        {
+          "attack": 38.94,
+          "defense": 38.94
+        },
+        {
+          "attack": 41.99,
+          "defense": 41.99
+        },
+        {
+          "attack": 45.05,
+          "defense": 45.05
+        },
+        {
+          "attack": 48.1,
+          "defense": 48.1
+        },
+        {
+          "attack": 53.6,
+          "defense": 53.6
+        },
+        {
+          "attack": 57.88,
+          "defense": 57.88
+        },
+        {
+          "attack": 62.15,
+          "defense": 62.15
+        },
+        {
+          "attack": 66.43,
+          "defense": 66.43
+        },
+        {
+          "attack": 70.71,
+          "defense": 70.71
+        },
+        {
+          "attack": 74.98,
+          "defense": 74.98
+        },
+        {
+          "attack": 82.68,
+          "defense": 82.68
+        },
+        {
+          "attack": 88.66,
+          "defense": 88.66
+        },
+        {
+          "attack": 94.65,
+          "defense": 94.65
+        },
+        {
+          "attack": 100.65,
+          "defense": 100.65
+        },
+        {
+          "attack": 106.63,
+          "defense": 106.63
+        },
+        {
+          "attack": 112.62,
+          "defense": 112.62
+        },
+        {
+          "attack": 123.4,
+          "defense": 123.4
+        },
+        {
+          "attack": 131.78,
+          "defense": 131.78
+        },
+        {
+          "attack": 140.15,
+          "defense": 140.15
+        },
+        {
+          "attack": 148.54,
+          "defense": 148.54
+        },
+        {
+          "attack": 156.92,
+          "defense": 156.92
+        },
+        {
+          "attack": 165.31,
+          "defense": 165.31
+        },
+        {
+          "attack": 180.4,
+          "defense": 180.4
+        },
+        {
+          "attack": 192.13,
+          "defense": 192.13
+        },
+        {
+          "attack": 203.87,
+          "defense": 203.87
+        },
+        {
+          "attack": 215.6,
+          "defense": 215.6
+        },
+        {
+          "attack": 227.34,
+          "defense": 227.34
+        },
+        {
+          "attack": 239.08,
+          "defense": 239.08
+        },
+        {
+          "attack": 260.21,
+          "defense": 260.21
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Helga": {
+      "canonical_name": "Helga",
+      "simulator_name": "Helga",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 200.16,
+        "defense": 200.16
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 55.0,
+          "health": 55.0
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/helga",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/helga/",
+      "star_progression": [
+        {
+          "attack": 25.25,
+          "defense": 25.25
+        },
+        {
+          "attack": 27.6,
+          "defense": 27.6
+        },
+        {
+          "attack": 29.95,
+          "defense": 29.95
+        },
+        {
+          "attack": 32.3,
+          "defense": 32.3
+        },
+        {
+          "attack": 34.65,
+          "defense": 34.65
+        },
+        {
+          "attack": 37.0,
+          "defense": 37.0
+        },
+        {
+          "attack": 41.23,
+          "defense": 41.23
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.81,
+          "defense": 47.81
+        },
+        {
+          "attack": 51.1,
+          "defense": 51.1
+        },
+        {
+          "attack": 54.39,
+          "defense": 54.39
+        },
+        {
+          "attack": 57.68,
+          "defense": 57.68
+        },
+        {
+          "attack": 63.6,
+          "defense": 63.6
+        },
+        {
+          "attack": 68.2,
+          "defense": 68.2
+        },
+        {
+          "attack": 72.81,
+          "defense": 72.81
+        },
+        {
+          "attack": 77.42,
+          "defense": 77.42
+        },
+        {
+          "attack": 82.02,
+          "defense": 82.02
+        },
+        {
+          "attack": 86.63,
+          "defense": 86.63
+        },
+        {
+          "attack": 94.92,
+          "defense": 94.92
+        },
+        {
+          "attack": 101.37,
+          "defense": 101.37
+        },
+        {
+          "attack": 107.81,
+          "defense": 107.81
+        },
+        {
+          "attack": 114.26,
+          "defense": 114.26
+        },
+        {
+          "attack": 120.71,
+          "defense": 120.71
+        },
+        {
+          "attack": 127.16,
+          "defense": 127.16
+        },
+        {
+          "attack": 138.77,
+          "defense": 138.77
+        },
+        {
+          "attack": 147.79,
+          "defense": 147.79
+        },
+        {
+          "attack": 156.82,
+          "defense": 156.82
+        },
+        {
+          "attack": 165.85,
+          "defense": 165.85
+        },
+        {
+          "attack": 174.88,
+          "defense": 174.88
+        },
+        {
+          "attack": 183.91,
+          "defense": 183.91
+        },
+        {
+          "attack": 200.16,
+          "defense": 200.16
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Jabel": {
+      "canonical_name": "Jabel",
+      "simulator_name": "Jabel",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 200.16,
+        "defense": 200.16
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 50.0,
+          "health": 50.0
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/jabel",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/jabel/",
+      "star_progression": [
+        {
+          "attack": 25.25,
+          "defense": 25.25
+        },
+        {
+          "attack": 27.6,
+          "defense": 27.6
+        },
+        {
+          "attack": 29.95,
+          "defense": 29.95
+        },
+        {
+          "attack": 32.3,
+          "defense": 32.3
+        },
+        {
+          "attack": 34.65,
+          "defense": 34.65
+        },
+        {
+          "attack": 37.0,
+          "defense": 37.0
+        },
+        {
+          "attack": 41.23,
+          "defense": 41.23
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.81,
+          "defense": 47.81
+        },
+        {
+          "attack": 51.1,
+          "defense": 51.1
+        },
+        {
+          "attack": 54.39,
+          "defense": 54.39
+        },
+        {
+          "attack": 57.68,
+          "defense": 57.68
+        },
+        {
+          "attack": 63.6,
+          "defense": 63.6
+        },
+        {
+          "attack": 68.2,
+          "defense": 68.2
+        },
+        {
+          "attack": 72.81,
+          "defense": 72.81
+        },
+        {
+          "attack": 77.42,
+          "defense": 77.42
+        },
+        {
+          "attack": 82.02,
+          "defense": 82.02
+        },
+        {
+          "attack": 86.63,
+          "defense": 86.63
+        },
+        {
+          "attack": 94.92,
+          "defense": 94.92
+        },
+        {
+          "attack": 101.37,
+          "defense": 101.37
+        },
+        {
+          "attack": 107.81,
+          "defense": 107.81
+        },
+        {
+          "attack": 114.26,
+          "defense": 114.26
+        },
+        {
+          "attack": 120.71,
+          "defense": 120.71
+        },
+        {
+          "attack": 127.16,
+          "defense": 127.16
+        },
+        {
+          "attack": 138.77,
+          "defense": 138.77
+        },
+        {
+          "attack": 147.79,
+          "defense": 147.79
+        },
+        {
+          "attack": 156.82,
+          "defense": 156.82
+        },
+        {
+          "attack": 165.85,
+          "defense": 165.85
+        },
+        {
+          "attack": 174.88,
+          "defense": 174.88
+        },
+        {
+          "attack": 183.91,
+          "defense": 183.91
+        },
+        {
+          "attack": 200.16,
+          "defense": 200.16
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Saul": {
+      "canonical_name": "Saul",
+      "simulator_name": "Saul",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 200.16,
+        "defense": 200.16
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 50.0,
+          "health": 50.0
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/saul",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/saul/",
+      "star_progression": [
+        {
+          "attack": 25.25,
+          "defense": 25.25
+        },
+        {
+          "attack": 27.6,
+          "defense": 27.6
+        },
+        {
+          "attack": 29.95,
+          "defense": 29.95
+        },
+        {
+          "attack": 32.3,
+          "defense": 32.3
+        },
+        {
+          "attack": 34.65,
+          "defense": 34.65
+        },
+        {
+          "attack": 37.0,
+          "defense": 37.0
+        },
+        {
+          "attack": 41.23,
+          "defense": 41.23
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.81,
+          "defense": 47.81
+        },
+        {
+          "attack": 51.1,
+          "defense": 51.1
+        },
+        {
+          "attack": 54.39,
+          "defense": 54.39
+        },
+        {
+          "attack": 57.68,
+          "defense": 57.68
+        },
+        {
+          "attack": 63.6,
+          "defense": 63.6
+        },
+        {
+          "attack": 68.2,
+          "defense": 68.2
+        },
+        {
+          "attack": 72.81,
+          "defense": 72.81
+        },
+        {
+          "attack": 77.42,
+          "defense": 77.42
+        },
+        {
+          "attack": 82.02,
+          "defense": 82.02
+        },
+        {
+          "attack": 86.63,
+          "defense": 86.63
+        },
+        {
+          "attack": 94.92,
+          "defense": 94.92
+        },
+        {
+          "attack": 101.37,
+          "defense": 101.37
+        },
+        {
+          "attack": 107.81,
+          "defense": 107.81
+        },
+        {
+          "attack": 114.26,
+          "defense": 114.26
+        },
+        {
+          "attack": 120.71,
+          "defense": 120.71
+        },
+        {
+          "attack": 127.16,
+          "defense": 127.16
+        },
+        {
+          "attack": 138.77,
+          "defense": 138.77
+        },
+        {
+          "attack": 147.79,
+          "defense": 147.79
+        },
+        {
+          "attack": 156.82,
+          "defense": 156.82
+        },
+        {
+          "attack": 165.85,
+          "defense": 165.85
+        },
+        {
+          "attack": 174.88,
+          "defense": 174.88
+        },
+        {
+          "attack": 183.91,
+          "defense": 183.91
+        },
+        {
+          "attack": 200.16,
+          "defense": 200.16
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Howard": {
+      "canonical_name": "Howard",
+      "simulator_name": "Howard",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/howard",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Gordon": {
+      "canonical_name": "Gordon",
+      "simulator_name": "Gordon",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/gordon",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Quinn": {
+      "canonical_name": "Quinn",
+      "simulator_name": "Quinn",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/quinn",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Chenko": {
+      "canonical_name": "Chenko",
+      "simulator_name": "Chenko",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/chenko",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Diana": {
+      "canonical_name": "Diana",
+      "simulator_name": "Diana",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/diana",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Amane": {
+      "canonical_name": "Amane",
+      "simulator_name": "Amane",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/amane",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Yeonwoo": {
+      "canonical_name": "Yeonwoo",
+      "simulator_name": "Yeonwoo",
+      "aliases": [
+        "Yaenwoo"
+      ],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/yeonwoo",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Fahd": {
+      "canonical_name": "Fahd",
+      "simulator_name": "Fahd",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "epic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 140.11,
+        "defense": 140.11
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/fahd",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 17.68,
+          "defense": 17.68
+        },
+        {
+          "attack": 19.32,
+          "defense": 19.32
+        },
+        {
+          "attack": 20.96,
+          "defense": 20.96
+        },
+        {
+          "attack": 22.61,
+          "defense": 22.61
+        },
+        {
+          "attack": 24.25,
+          "defense": 24.25
+        },
+        {
+          "attack": 25.9,
+          "defense": 25.9
+        },
+        {
+          "attack": 28.86,
+          "defense": 28.86
+        },
+        {
+          "attack": 31.16,
+          "defense": 31.16
+        },
+        {
+          "attack": 33.47,
+          "defense": 33.47
+        },
+        {
+          "attack": 35.77,
+          "defense": 35.77
+        },
+        {
+          "attack": 38.07,
+          "defense": 38.07
+        },
+        {
+          "attack": 40.38,
+          "defense": 40.38
+        },
+        {
+          "attack": 44.52,
+          "defense": 44.52
+        },
+        {
+          "attack": 47.74,
+          "defense": 47.74
+        },
+        {
+          "attack": 50.97,
+          "defense": 50.97
+        },
+        {
+          "attack": 54.19,
+          "defense": 54.19
+        },
+        {
+          "attack": 57.41,
+          "defense": 57.41
+        },
+        {
+          "attack": 60.64,
+          "defense": 60.64
+        },
+        {
+          "attack": 66.44,
+          "defense": 66.44
+        },
+        {
+          "attack": 70.96,
+          "defense": 70.96
+        },
+        {
+          "attack": 75.47,
+          "defense": 75.47
+        },
+        {
+          "attack": 79.98,
+          "defense": 79.98
+        },
+        {
+          "attack": 84.5,
+          "defense": 84.5
+        },
+        {
+          "attack": 89.01,
+          "defense": 89.01
+        },
+        {
+          "attack": 97.14,
+          "defense": 97.14
+        },
+        {
+          "attack": 103.45,
+          "defense": 103.45
+        },
+        {
+          "attack": 109.77,
+          "defense": 109.77
+        },
+        {
+          "attack": 116.09,
+          "defense": 116.09
+        },
+        {
+          "attack": 122.42,
+          "defense": 122.42
+        },
+        {
+          "attack": 128.74,
+          "defense": 128.74
+        },
+        {
+          "attack": 140.11,
+          "defense": 140.11
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Forrest": {
+      "canonical_name": "Forrest",
+      "simulator_name": "Forrest",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "rare",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 90.07,
+        "defense": 90.07
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/forrest",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 11.36,
+          "defense": 11.36
+        },
+        {
+          "attack": 12.42,
+          "defense": 12.42
+        },
+        {
+          "attack": 13.48,
+          "defense": 13.48
+        },
+        {
+          "attack": 14.54,
+          "defense": 14.54
+        },
+        {
+          "attack": 15.59,
+          "defense": 15.59
+        },
+        {
+          "attack": 16.65,
+          "defense": 16.65
+        },
+        {
+          "attack": 18.55,
+          "defense": 18.55
+        },
+        {
+          "attack": 20.03,
+          "defense": 20.03
+        },
+        {
+          "attack": 21.51,
+          "defense": 21.51
+        },
+        {
+          "attack": 23.0,
+          "defense": 23.0
+        },
+        {
+          "attack": 24.48,
+          "defense": 24.48
+        },
+        {
+          "attack": 25.96,
+          "defense": 25.96
+        },
+        {
+          "attack": 28.62,
+          "defense": 28.62
+        },
+        {
+          "attack": 30.69,
+          "defense": 30.69
+        },
+        {
+          "attack": 32.76,
+          "defense": 32.76
+        },
+        {
+          "attack": 34.84,
+          "defense": 34.84
+        },
+        {
+          "attack": 36.91,
+          "defense": 36.91
+        },
+        {
+          "attack": 38.98,
+          "defense": 38.98
+        },
+        {
+          "attack": 42.71,
+          "defense": 42.71
+        },
+        {
+          "attack": 45.62,
+          "defense": 45.62
+        },
+        {
+          "attack": 48.51,
+          "defense": 48.51
+        },
+        {
+          "attack": 51.42,
+          "defense": 51.42
+        },
+        {
+          "attack": 54.32,
+          "defense": 54.32
+        },
+        {
+          "attack": 57.22,
+          "defense": 57.22
+        },
+        {
+          "attack": 62.45,
+          "defense": 62.45
+        },
+        {
+          "attack": 66.51,
+          "defense": 66.51
+        },
+        {
+          "attack": 70.57,
+          "defense": 70.57
+        },
+        {
+          "attack": 74.63,
+          "defense": 74.63
+        },
+        {
+          "attack": 78.7,
+          "defense": 78.7
+        },
+        {
+          "attack": 82.76,
+          "defense": 82.76
+        },
+        {
+          "attack": 90.07,
+          "defense": 90.07
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Seth": {
+      "canonical_name": "Seth",
+      "simulator_name": "Seth",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "rare",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 90.07,
+        "defense": 90.07
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/seth",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 11.36,
+          "defense": 11.36
+        },
+        {
+          "attack": 12.42,
+          "defense": 12.42
+        },
+        {
+          "attack": 13.48,
+          "defense": 13.48
+        },
+        {
+          "attack": 14.54,
+          "defense": 14.54
+        },
+        {
+          "attack": 15.59,
+          "defense": 15.59
+        },
+        {
+          "attack": 16.65,
+          "defense": 16.65
+        },
+        {
+          "attack": 18.55,
+          "defense": 18.55
+        },
+        {
+          "attack": 20.03,
+          "defense": 20.03
+        },
+        {
+          "attack": 21.51,
+          "defense": 21.51
+        },
+        {
+          "attack": 23.0,
+          "defense": 23.0
+        },
+        {
+          "attack": 24.48,
+          "defense": 24.48
+        },
+        {
+          "attack": 25.96,
+          "defense": 25.96
+        },
+        {
+          "attack": 28.62,
+          "defense": 28.62
+        },
+        {
+          "attack": 30.69,
+          "defense": 30.69
+        },
+        {
+          "attack": 32.76,
+          "defense": 32.76
+        },
+        {
+          "attack": 34.84,
+          "defense": 34.84
+        },
+        {
+          "attack": 36.91,
+          "defense": 36.91
+        },
+        {
+          "attack": 38.98,
+          "defense": 38.98
+        },
+        {
+          "attack": 42.71,
+          "defense": 42.71
+        },
+        {
+          "attack": 45.62,
+          "defense": 45.62
+        },
+        {
+          "attack": 48.51,
+          "defense": 48.51
+        },
+        {
+          "attack": 51.42,
+          "defense": 51.42
+        },
+        {
+          "attack": 54.32,
+          "defense": 54.32
+        },
+        {
+          "attack": 57.22,
+          "defense": 57.22
+        },
+        {
+          "attack": 62.45,
+          "defense": 62.45
+        },
+        {
+          "attack": 66.51,
+          "defense": 66.51
+        },
+        {
+          "attack": 70.57,
+          "defense": 70.57
+        },
+        {
+          "attack": 74.63,
+          "defense": 74.63
+        },
+        {
+          "attack": 78.7,
+          "defense": 78.7
+        },
+        {
+          "attack": 82.76,
+          "defense": 82.76
+        },
+        {
+          "attack": 90.07,
+          "defense": 90.07
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Edwin": {
+      "canonical_name": "Edwin",
+      "simulator_name": "Edwin",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "rare",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 90.07,
+        "defense": 90.07
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/edwin",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 11.36,
+          "defense": 11.36
+        },
+        {
+          "attack": 12.42,
+          "defense": 12.42
+        },
+        {
+          "attack": 13.48,
+          "defense": 13.48
+        },
+        {
+          "attack": 14.54,
+          "defense": 14.54
+        },
+        {
+          "attack": 15.59,
+          "defense": 15.59
+        },
+        {
+          "attack": 16.65,
+          "defense": 16.65
+        },
+        {
+          "attack": 18.55,
+          "defense": 18.55
+        },
+        {
+          "attack": 20.03,
+          "defense": 20.03
+        },
+        {
+          "attack": 21.51,
+          "defense": 21.51
+        },
+        {
+          "attack": 23.0,
+          "defense": 23.0
+        },
+        {
+          "attack": 24.48,
+          "defense": 24.48
+        },
+        {
+          "attack": 25.96,
+          "defense": 25.96
+        },
+        {
+          "attack": 28.62,
+          "defense": 28.62
+        },
+        {
+          "attack": 30.69,
+          "defense": 30.69
+        },
+        {
+          "attack": 32.76,
+          "defense": 32.76
+        },
+        {
+          "attack": 34.84,
+          "defense": 34.84
+        },
+        {
+          "attack": 36.91,
+          "defense": 36.91
+        },
+        {
+          "attack": 38.98,
+          "defense": 38.98
+        },
+        {
+          "attack": 42.71,
+          "defense": 42.71
+        },
+        {
+          "attack": 45.62,
+          "defense": 45.62
+        },
+        {
+          "attack": 48.51,
+          "defense": 48.51
+        },
+        {
+          "attack": 51.42,
+          "defense": 51.42
+        },
+        {
+          "attack": 54.32,
+          "defense": 54.32
+        },
+        {
+          "attack": 57.22,
+          "defense": 57.22
+        },
+        {
+          "attack": 62.45,
+          "defense": 62.45
+        },
+        {
+          "attack": 66.51,
+          "defense": 66.51
+        },
+        {
+          "attack": 70.57,
+          "defense": 70.57
+        },
+        {
+          "attack": 74.63,
+          "defense": 74.63
+        },
+        {
+          "attack": 78.7,
+          "defense": 78.7
+        },
+        {
+          "attack": 82.76,
+          "defense": 82.76
+        },
+        {
+          "attack": 90.07,
+          "defense": 90.07
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Olive": {
+      "canonical_name": "Olive",
+      "simulator_name": "Olive",
+      "aliases": [],
+      "generation": 1,
+      "rarity": "rare",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 90.07,
+        "defense": 90.07
+      },
+      "exclusive_gear": {
+        "has_widget": false,
+        "widget_type": null,
+        "max_level": 0,
+        "max_passive_expedition": {
+          "lethality": 0.0,
+          "health": 0.0
+        }
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/olive",
+      "widget_stats_source": null,
+      "star_progression": [
+        {
+          "attack": 11.36,
+          "defense": 11.36
+        },
+        {
+          "attack": 12.42,
+          "defense": 12.42
+        },
+        {
+          "attack": 13.48,
+          "defense": 13.48
+        },
+        {
+          "attack": 14.54,
+          "defense": 14.54
+        },
+        {
+          "attack": 15.59,
+          "defense": 15.59
+        },
+        {
+          "attack": 16.65,
+          "defense": 16.65
+        },
+        {
+          "attack": 18.55,
+          "defense": 18.55
+        },
+        {
+          "attack": 20.03,
+          "defense": 20.03
+        },
+        {
+          "attack": 21.51,
+          "defense": 21.51
+        },
+        {
+          "attack": 23.0,
+          "defense": 23.0
+        },
+        {
+          "attack": 24.48,
+          "defense": 24.48
+        },
+        {
+          "attack": 25.96,
+          "defense": 25.96
+        },
+        {
+          "attack": 28.62,
+          "defense": 28.62
+        },
+        {
+          "attack": 30.69,
+          "defense": 30.69
+        },
+        {
+          "attack": 32.76,
+          "defense": 32.76
+        },
+        {
+          "attack": 34.84,
+          "defense": 34.84
+        },
+        {
+          "attack": 36.91,
+          "defense": 36.91
+        },
+        {
+          "attack": 38.98,
+          "defense": 38.98
+        },
+        {
+          "attack": 42.71,
+          "defense": 42.71
+        },
+        {
+          "attack": 45.62,
+          "defense": 45.62
+        },
+        {
+          "attack": 48.51,
+          "defense": 48.51
+        },
+        {
+          "attack": 51.42,
+          "defense": 51.42
+        },
+        {
+          "attack": 54.32,
+          "defense": 54.32
+        },
+        {
+          "attack": 57.22,
+          "defense": 57.22
+        },
+        {
+          "attack": 62.45,
+          "defense": 62.45
+        },
+        {
+          "attack": 66.51,
+          "defense": 66.51
+        },
+        {
+          "attack": 70.57,
+          "defense": 70.57
+        },
+        {
+          "attack": 74.63,
+          "defense": 74.63
+        },
+        {
+          "attack": 78.7,
+          "defense": 78.7
+        },
+        {
+          "attack": 82.76,
+          "defense": 82.76
+        },
+        {
+          "attack": 90.07,
+          "defense": 90.07
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Zoe": {
+      "canonical_name": "Zoe",
+      "simulator_name": "Zoe",
+      "aliases": [],
+      "generation": 2,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 240.19,
+        "defense": 240.19
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 60.0,
+          "health": 60.0
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/zoe",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/zoe/",
+      "star_progression": [
+        {
+          "attack": 30.3,
+          "defense": 30.3
+        },
+        {
+          "attack": 33.12,
+          "defense": 33.12
+        },
+        {
+          "attack": 35.94,
+          "defense": 35.94
+        },
+        {
+          "attack": 38.76,
+          "defense": 38.76
+        },
+        {
+          "attack": 41.58,
+          "defense": 41.58
+        },
+        {
+          "attack": 44.4,
+          "defense": 44.4
+        },
+        {
+          "attack": 49.48,
+          "defense": 49.48
+        },
+        {
+          "attack": 53.42,
+          "defense": 53.42
+        },
+        {
+          "attack": 57.37,
+          "defense": 57.37
+        },
+        {
+          "attack": 61.32,
+          "defense": 61.32
+        },
+        {
+          "attack": 65.27,
+          "defense": 65.27
+        },
+        {
+          "attack": 69.22,
+          "defense": 69.22
+        },
+        {
+          "attack": 76.32,
+          "defense": 76.32
+        },
+        {
+          "attack": 81.84,
+          "defense": 81.84
+        },
+        {
+          "attack": 87.37,
+          "defense": 87.37
+        },
+        {
+          "attack": 92.9,
+          "defense": 92.9
+        },
+        {
+          "attack": 98.42,
+          "defense": 98.42
+        },
+        {
+          "attack": 103.96,
+          "defense": 103.96
+        },
+        {
+          "attack": 113.9,
+          "defense": 113.9
+        },
+        {
+          "attack": 121.64,
+          "defense": 121.64
+        },
+        {
+          "attack": 129.37,
+          "defense": 129.37
+        },
+        {
+          "attack": 137.11,
+          "defense": 137.11
+        },
+        {
+          "attack": 144.85,
+          "defense": 144.85
+        },
+        {
+          "attack": 152.59,
+          "defense": 152.59
+        },
+        {
+          "attack": 166.52,
+          "defense": 166.52
+        },
+        {
+          "attack": 177.35,
+          "defense": 177.35
+        },
+        {
+          "attack": 188.18,
+          "defense": 188.18
+        },
+        {
+          "attack": 199.02,
+          "defense": 199.02
+        },
+        {
+          "attack": 209.86,
+          "defense": 209.86
+        },
+        {
+          "attack": 220.69,
+          "defense": 220.69
+        },
+        {
+          "attack": 240.19,
+          "defense": 240.19
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Hilde": {
+      "canonical_name": "Hilde",
+      "simulator_name": "Hilde",
+      "aliases": [],
+      "generation": 2,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 240.19,
+        "defense": 240.19
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 60.0,
+          "health": 60.0
+        },
+        "active_expedition_stat": "health",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/hilde",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/hilde/",
+      "star_progression": [
+        {
+          "attack": 30.3,
+          "defense": 30.3
+        },
+        {
+          "attack": 33.12,
+          "defense": 33.12
+        },
+        {
+          "attack": 35.94,
+          "defense": 35.94
+        },
+        {
+          "attack": 38.76,
+          "defense": 38.76
+        },
+        {
+          "attack": 41.58,
+          "defense": 41.58
+        },
+        {
+          "attack": 44.4,
+          "defense": 44.4
+        },
+        {
+          "attack": 49.48,
+          "defense": 49.48
+        },
+        {
+          "attack": 53.42,
+          "defense": 53.42
+        },
+        {
+          "attack": 57.37,
+          "defense": 57.37
+        },
+        {
+          "attack": 61.32,
+          "defense": 61.32
+        },
+        {
+          "attack": 65.27,
+          "defense": 65.27
+        },
+        {
+          "attack": 69.22,
+          "defense": 69.22
+        },
+        {
+          "attack": 76.32,
+          "defense": 76.32
+        },
+        {
+          "attack": 81.84,
+          "defense": 81.84
+        },
+        {
+          "attack": 87.37,
+          "defense": 87.37
+        },
+        {
+          "attack": 92.9,
+          "defense": 92.9
+        },
+        {
+          "attack": 98.42,
+          "defense": 98.42
+        },
+        {
+          "attack": 103.96,
+          "defense": 103.96
+        },
+        {
+          "attack": 113.9,
+          "defense": 113.9
+        },
+        {
+          "attack": 121.64,
+          "defense": 121.64
+        },
+        {
+          "attack": 129.37,
+          "defense": 129.37
+        },
+        {
+          "attack": 137.11,
+          "defense": 137.11
+        },
+        {
+          "attack": 144.85,
+          "defense": 144.85
+        },
+        {
+          "attack": 152.59,
+          "defense": 152.59
+        },
+        {
+          "attack": 166.52,
+          "defense": 166.52
+        },
+        {
+          "attack": 177.35,
+          "defense": 177.35
+        },
+        {
+          "attack": 188.18,
+          "defense": 188.18
+        },
+        {
+          "attack": 199.02,
+          "defense": 199.02
+        },
+        {
+          "attack": 209.86,
+          "defense": 209.86
+        },
+        {
+          "attack": 220.69,
+          "defense": 220.69
+        },
+        {
+          "attack": 240.19,
+          "defense": 240.19
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Marlin": {
+      "canonical_name": "Marlin",
+      "simulator_name": "Marlin",
+      "aliases": [],
+      "generation": 2,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 240.19,
+        "defense": 240.19
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 60.0,
+          "health": 60.0
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://kingshotdata.com/heroes/marlin/",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/marlin/",
+      "star_progression": [
+        {
+          "attack": 30.3,
+          "defense": 30.3
+        },
+        {
+          "attack": 33.12,
+          "defense": 33.12
+        },
+        {
+          "attack": 35.94,
+          "defense": 35.94
+        },
+        {
+          "attack": 38.76,
+          "defense": 38.76
+        },
+        {
+          "attack": 41.58,
+          "defense": 41.58
+        },
+        {
+          "attack": 44.4,
+          "defense": 44.4
+        },
+        {
+          "attack": 49.48,
+          "defense": 49.48
+        },
+        {
+          "attack": 53.42,
+          "defense": 53.42
+        },
+        {
+          "attack": 57.37,
+          "defense": 57.37
+        },
+        {
+          "attack": 61.32,
+          "defense": 61.32
+        },
+        {
+          "attack": 65.27,
+          "defense": 65.27
+        },
+        {
+          "attack": 69.22,
+          "defense": 69.22
+        },
+        {
+          "attack": 76.32,
+          "defense": 76.32
+        },
+        {
+          "attack": 81.84,
+          "defense": 81.84
+        },
+        {
+          "attack": 87.37,
+          "defense": 87.37
+        },
+        {
+          "attack": 92.9,
+          "defense": 92.9
+        },
+        {
+          "attack": 98.42,
+          "defense": 98.42
+        },
+        {
+          "attack": 103.96,
+          "defense": 103.96
+        },
+        {
+          "attack": 113.9,
+          "defense": 113.9
+        },
+        {
+          "attack": 121.64,
+          "defense": 121.64
+        },
+        {
+          "attack": 129.37,
+          "defense": 129.37
+        },
+        {
+          "attack": 137.11,
+          "defense": 137.11
+        },
+        {
+          "attack": 144.85,
+          "defense": 144.85
+        },
+        {
+          "attack": 152.59,
+          "defense": 152.59
+        },
+        {
+          "attack": 166.52,
+          "defense": 166.52
+        },
+        {
+          "attack": 177.35,
+          "defense": 177.35
+        },
+        {
+          "attack": 188.18,
+          "defense": 188.18
+        },
+        {
+          "attack": 199.02,
+          "defense": 199.02
+        },
+        {
+          "attack": 209.86,
+          "defense": 209.86
+        },
+        {
+          "attack": 220.69,
+          "defense": 220.69
+        },
+        {
+          "attack": 240.19,
+          "defense": 240.19
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Eric": {
+      "canonical_name": "Eric",
+      "simulator_name": "Eric",
+      "aliases": [],
+      "generation": 3,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 290.23,
+        "defense": 290.23
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 70.0,
+          "health": 70.0
+        },
+        "active_expedition_stat": "defense",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/eric",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/eric/",
+      "star_progression": [
+        {
+          "attack": 36.61,
+          "defense": 36.61
+        },
+        {
+          "attack": 40.02,
+          "defense": 40.02
+        },
+        {
+          "attack": 43.43,
+          "defense": 43.43
+        },
+        {
+          "attack": 46.84,
+          "defense": 46.84
+        },
+        {
+          "attack": 50.24,
+          "defense": 50.24
+        },
+        {
+          "attack": 53.65,
+          "defense": 53.65
+        },
+        {
+          "attack": 59.78,
+          "defense": 59.78
+        },
+        {
+          "attack": 64.55,
+          "defense": 64.55
+        },
+        {
+          "attack": 69.32,
+          "defense": 69.32
+        },
+        {
+          "attack": 74.09,
+          "defense": 74.09
+        },
+        {
+          "attack": 78.87,
+          "defense": 78.87
+        },
+        {
+          "attack": 83.64,
+          "defense": 83.64
+        },
+        {
+          "attack": 92.22,
+          "defense": 92.22
+        },
+        {
+          "attack": 98.89,
+          "defense": 98.89
+        },
+        {
+          "attack": 105.57,
+          "defense": 105.57
+        },
+        {
+          "attack": 112.26,
+          "defense": 112.26
+        },
+        {
+          "attack": 118.93,
+          "defense": 118.93
+        },
+        {
+          "attack": 125.61,
+          "defense": 125.61
+        },
+        {
+          "attack": 137.63,
+          "defense": 137.63
+        },
+        {
+          "attack": 146.99,
+          "defense": 146.99
+        },
+        {
+          "attack": 156.32,
+          "defense": 156.32
+        },
+        {
+          "attack": 165.68,
+          "defense": 165.68
+        },
+        {
+          "attack": 175.03,
+          "defense": 175.03
+        },
+        {
+          "attack": 184.38,
+          "defense": 184.38
+        },
+        {
+          "attack": 201.22,
+          "defense": 201.22
+        },
+        {
+          "attack": 214.3,
+          "defense": 214.3
+        },
+        {
+          "attack": 227.39,
+          "defense": 227.39
+        },
+        {
+          "attack": 240.48,
+          "defense": 240.48
+        },
+        {
+          "attack": 253.58,
+          "defense": 253.58
+        },
+        {
+          "attack": 266.67,
+          "defense": 266.67
+        },
+        {
+          "attack": 290.23,
+          "defense": 290.23
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Petra": {
+      "canonical_name": "Petra",
+      "simulator_name": "Petra",
+      "aliases": [],
+      "generation": 3,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 290.23,
+        "defense": 290.23
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 70.0,
+          "health": 70.0
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/petra",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/petra/",
+      "star_progression": [
+        {
+          "attack": 36.61,
+          "defense": 36.61
+        },
+        {
+          "attack": 40.02,
+          "defense": 40.02
+        },
+        {
+          "attack": 43.43,
+          "defense": 43.43
+        },
+        {
+          "attack": 46.84,
+          "defense": 46.84
+        },
+        {
+          "attack": 50.24,
+          "defense": 50.24
+        },
+        {
+          "attack": 53.65,
+          "defense": 53.65
+        },
+        {
+          "attack": 59.78,
+          "defense": 59.78
+        },
+        {
+          "attack": 64.55,
+          "defense": 64.55
+        },
+        {
+          "attack": 69.32,
+          "defense": 69.32
+        },
+        {
+          "attack": 74.09,
+          "defense": 74.09
+        },
+        {
+          "attack": 78.87,
+          "defense": 78.87
+        },
+        {
+          "attack": 83.64,
+          "defense": 83.64
+        },
+        {
+          "attack": 92.22,
+          "defense": 92.22
+        },
+        {
+          "attack": 98.89,
+          "defense": 98.89
+        },
+        {
+          "attack": 105.57,
+          "defense": 105.57
+        },
+        {
+          "attack": 112.26,
+          "defense": 112.26
+        },
+        {
+          "attack": 118.93,
+          "defense": 118.93
+        },
+        {
+          "attack": 125.61,
+          "defense": 125.61
+        },
+        {
+          "attack": 137.63,
+          "defense": 137.63
+        },
+        {
+          "attack": 146.99,
+          "defense": 146.99
+        },
+        {
+          "attack": 156.32,
+          "defense": 156.32
+        },
+        {
+          "attack": 165.68,
+          "defense": 165.68
+        },
+        {
+          "attack": 175.03,
+          "defense": 175.03
+        },
+        {
+          "attack": 184.38,
+          "defense": 184.38
+        },
+        {
+          "attack": 201.22,
+          "defense": 201.22
+        },
+        {
+          "attack": 214.3,
+          "defense": 214.3
+        },
+        {
+          "attack": 227.39,
+          "defense": 227.39
+        },
+        {
+          "attack": 240.48,
+          "defense": 240.48
+        },
+        {
+          "attack": 253.58,
+          "defense": 253.58
+        },
+        {
+          "attack": 266.67,
+          "defense": 266.67
+        },
+        {
+          "attack": 290.23,
+          "defense": 290.23
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Jaeger": {
+      "canonical_name": "Jaeger",
+      "simulator_name": "Jaeger",
+      "aliases": [
+        "Jaegar"
+      ],
+      "generation": 3,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 290.23,
+        "defense": 290.23
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 70.0,
+          "health": 70.0
+        },
+        "active_expedition_stat": "health",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/jaeger",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/jaeger/",
+      "star_progression": [
+        {
+          "attack": 36.61,
+          "defense": 36.61
+        },
+        {
+          "attack": 40.02,
+          "defense": 40.02
+        },
+        {
+          "attack": 43.43,
+          "defense": 43.43
+        },
+        {
+          "attack": 46.84,
+          "defense": 46.84
+        },
+        {
+          "attack": 50.24,
+          "defense": 50.24
+        },
+        {
+          "attack": 53.65,
+          "defense": 53.65
+        },
+        {
+          "attack": 59.78,
+          "defense": 59.78
+        },
+        {
+          "attack": 64.55,
+          "defense": 64.55
+        },
+        {
+          "attack": 69.32,
+          "defense": 69.32
+        },
+        {
+          "attack": 74.09,
+          "defense": 74.09
+        },
+        {
+          "attack": 78.87,
+          "defense": 78.87
+        },
+        {
+          "attack": 83.64,
+          "defense": 83.64
+        },
+        {
+          "attack": 92.22,
+          "defense": 92.22
+        },
+        {
+          "attack": 98.89,
+          "defense": 98.89
+        },
+        {
+          "attack": 105.57,
+          "defense": 105.57
+        },
+        {
+          "attack": 112.26,
+          "defense": 112.26
+        },
+        {
+          "attack": 118.93,
+          "defense": 118.93
+        },
+        {
+          "attack": 125.61,
+          "defense": 125.61
+        },
+        {
+          "attack": 137.63,
+          "defense": 137.63
+        },
+        {
+          "attack": 146.99,
+          "defense": 146.99
+        },
+        {
+          "attack": 156.32,
+          "defense": 156.32
+        },
+        {
+          "attack": 165.68,
+          "defense": 165.68
+        },
+        {
+          "attack": 175.03,
+          "defense": 175.03
+        },
+        {
+          "attack": 184.38,
+          "defense": 184.38
+        },
+        {
+          "attack": 201.22,
+          "defense": 201.22
+        },
+        {
+          "attack": 214.3,
+          "defense": 214.3
+        },
+        {
+          "attack": 227.39,
+          "defense": 227.39
+        },
+        {
+          "attack": 240.48,
+          "defense": 240.48
+        },
+        {
+          "attack": 253.58,
+          "defense": 253.58
+        },
+        {
+          "attack": 266.67,
+          "defense": 266.67
+        },
+        {
+          "attack": 290.23,
+          "defense": 290.23
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Alcar": {
+      "canonical_name": "Alcar",
+      "simulator_name": "Alcar",
+      "aliases": [],
+      "generation": 4,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 370.3,
+        "defense": 370.3
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 92.5,
+          "health": 92.5
+        },
+        "active_expedition_stat": "health",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/alcar",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/alcar/",
+      "star_progression": [
+        {
+          "attack": 46.71,
+          "defense": 46.71
+        },
+        {
+          "attack": 51.06,
+          "defense": 51.06
+        },
+        {
+          "attack": 55.41,
+          "defense": 55.41
+        },
+        {
+          "attack": 59.76,
+          "defense": 59.76
+        },
+        {
+          "attack": 64.1,
+          "defense": 64.1
+        },
+        {
+          "attack": 68.45,
+          "defense": 68.45
+        },
+        {
+          "attack": 76.28,
+          "defense": 76.28
+        },
+        {
+          "attack": 82.36,
+          "defense": 82.36
+        },
+        {
+          "attack": 88.45,
+          "defense": 88.45
+        },
+        {
+          "attack": 94.53,
+          "defense": 94.53
+        },
+        {
+          "attack": 100.62,
+          "defense": 100.62
+        },
+        {
+          "attack": 106.71,
+          "defense": 106.71
+        },
+        {
+          "attack": 117.66,
+          "defense": 117.66
+        },
+        {
+          "attack": 126.17,
+          "defense": 126.17
+        },
+        {
+          "attack": 134.7,
+          "defense": 134.7
+        },
+        {
+          "attack": 143.23,
+          "defense": 143.23
+        },
+        {
+          "attack": 151.74,
+          "defense": 151.74
+        },
+        {
+          "attack": 160.27,
+          "defense": 160.27
+        },
+        {
+          "attack": 175.6,
+          "defense": 175.6
+        },
+        {
+          "attack": 187.53,
+          "defense": 187.53
+        },
+        {
+          "attack": 199.45,
+          "defense": 199.45
+        },
+        {
+          "attack": 211.38,
+          "defense": 211.38
+        },
+        {
+          "attack": 223.31,
+          "defense": 223.31
+        },
+        {
+          "attack": 235.25,
+          "defense": 235.25
+        },
+        {
+          "attack": 256.72,
+          "defense": 256.72
+        },
+        {
+          "attack": 273.41,
+          "defense": 273.41
+        },
+        {
+          "attack": 290.12,
+          "defense": 290.12
+        },
+        {
+          "attack": 306.82,
+          "defense": 306.82
+        },
+        {
+          "attack": 323.53,
+          "defense": 323.53
+        },
+        {
+          "attack": 340.23,
+          "defense": 340.23
+        },
+        {
+          "attack": 370.3,
+          "defense": 370.3
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Margot": {
+      "canonical_name": "Margot",
+      "simulator_name": "Margot",
+      "aliases": [],
+      "generation": 4,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 370.3,
+        "defense": 370.3
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 92.5,
+          "health": 92.5
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/margot",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/margot/",
+      "star_progression": [
+        {
+          "attack": 46.71,
+          "defense": 46.71
+        },
+        {
+          "attack": 51.06,
+          "defense": 51.06
+        },
+        {
+          "attack": 55.41,
+          "defense": 55.41
+        },
+        {
+          "attack": 59.76,
+          "defense": 59.76
+        },
+        {
+          "attack": 64.1,
+          "defense": 64.1
+        },
+        {
+          "attack": 68.45,
+          "defense": 68.45
+        },
+        {
+          "attack": 76.28,
+          "defense": 76.28
+        },
+        {
+          "attack": 82.36,
+          "defense": 82.36
+        },
+        {
+          "attack": 88.45,
+          "defense": 88.45
+        },
+        {
+          "attack": 94.53,
+          "defense": 94.53
+        },
+        {
+          "attack": 100.62,
+          "defense": 100.62
+        },
+        {
+          "attack": 106.71,
+          "defense": 106.71
+        },
+        {
+          "attack": 117.66,
+          "defense": 117.66
+        },
+        {
+          "attack": 126.17,
+          "defense": 126.17
+        },
+        {
+          "attack": 134.7,
+          "defense": 134.7
+        },
+        {
+          "attack": 143.23,
+          "defense": 143.23
+        },
+        {
+          "attack": 151.74,
+          "defense": 151.74
+        },
+        {
+          "attack": 160.27,
+          "defense": 160.27
+        },
+        {
+          "attack": 175.6,
+          "defense": 175.6
+        },
+        {
+          "attack": 187.53,
+          "defense": 187.53
+        },
+        {
+          "attack": 199.45,
+          "defense": 199.45
+        },
+        {
+          "attack": 211.38,
+          "defense": 211.38
+        },
+        {
+          "attack": 223.31,
+          "defense": 223.31
+        },
+        {
+          "attack": 235.25,
+          "defense": 235.25
+        },
+        {
+          "attack": 256.72,
+          "defense": 256.72
+        },
+        {
+          "attack": 273.41,
+          "defense": 273.41
+        },
+        {
+          "attack": 290.12,
+          "defense": 290.12
+        },
+        {
+          "attack": 306.82,
+          "defense": 306.82
+        },
+        {
+          "attack": 323.53,
+          "defense": 323.53
+        },
+        {
+          "attack": 340.23,
+          "defense": 340.23
+        },
+        {
+          "attack": 370.3,
+          "defense": 370.3
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Rosa": {
+      "canonical_name": "Rosa",
+      "simulator_name": "Rosa",
+      "aliases": [],
+      "generation": 4,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 370.3,
+        "defense": 370.3
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 92.5,
+          "health": 92.5
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/rosa",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/rosa/",
+      "star_progression": [
+        {
+          "attack": 46.71,
+          "defense": 46.71
+        },
+        {
+          "attack": 51.06,
+          "defense": 51.06
+        },
+        {
+          "attack": 55.41,
+          "defense": 55.41
+        },
+        {
+          "attack": 59.76,
+          "defense": 59.76
+        },
+        {
+          "attack": 64.1,
+          "defense": 64.1
+        },
+        {
+          "attack": 68.45,
+          "defense": 68.45
+        },
+        {
+          "attack": 76.28,
+          "defense": 76.28
+        },
+        {
+          "attack": 82.36,
+          "defense": 82.36
+        },
+        {
+          "attack": 88.45,
+          "defense": 88.45
+        },
+        {
+          "attack": 94.53,
+          "defense": 94.53
+        },
+        {
+          "attack": 100.62,
+          "defense": 100.62
+        },
+        {
+          "attack": 106.71,
+          "defense": 106.71
+        },
+        {
+          "attack": 117.66,
+          "defense": 117.66
+        },
+        {
+          "attack": 126.17,
+          "defense": 126.17
+        },
+        {
+          "attack": 134.7,
+          "defense": 134.7
+        },
+        {
+          "attack": 143.23,
+          "defense": 143.23
+        },
+        {
+          "attack": 151.74,
+          "defense": 151.74
+        },
+        {
+          "attack": 160.27,
+          "defense": 160.27
+        },
+        {
+          "attack": 175.6,
+          "defense": 175.6
+        },
+        {
+          "attack": 187.53,
+          "defense": 187.53
+        },
+        {
+          "attack": 199.45,
+          "defense": 199.45
+        },
+        {
+          "attack": 211.38,
+          "defense": 211.38
+        },
+        {
+          "attack": 223.31,
+          "defense": 223.31
+        },
+        {
+          "attack": 235.25,
+          "defense": 235.25
+        },
+        {
+          "attack": 256.72,
+          "defense": 256.72
+        },
+        {
+          "attack": 273.41,
+          "defense": 273.41
+        },
+        {
+          "attack": 290.12,
+          "defense": 290.12
+        },
+        {
+          "attack": 306.82,
+          "defense": 306.82
+        },
+        {
+          "attack": 323.53,
+          "defense": 323.53
+        },
+        {
+          "attack": 340.23,
+          "defense": 340.23
+        },
+        {
+          "attack": 370.3,
+          "defense": 370.3
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Long Fei": {
+      "canonical_name": "Long Fei",
+      "simulator_name": "Longfei",
+      "aliases": [
+        "Longfei"
+      ],
+      "generation": 5,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 444.36,
+        "defense": 444.36
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 111.0,
+          "health": 111.0
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/long-fei",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/long-fei/",
+      "star_progression": [
+        {
+          "attack": 56.05,
+          "defense": 56.05
+        },
+        {
+          "attack": 61.27,
+          "defense": 61.27
+        },
+        {
+          "attack": 66.49,
+          "defense": 66.49
+        },
+        {
+          "attack": 71.71,
+          "defense": 71.71
+        },
+        {
+          "attack": 76.92,
+          "defense": 76.92
+        },
+        {
+          "attack": 82.14,
+          "defense": 82.14
+        },
+        {
+          "attack": 91.53,
+          "defense": 91.53
+        },
+        {
+          "attack": 98.83,
+          "defense": 98.83
+        },
+        {
+          "attack": 106.14,
+          "defense": 106.14
+        },
+        {
+          "attack": 113.44,
+          "defense": 113.44
+        },
+        {
+          "attack": 120.75,
+          "defense": 120.75
+        },
+        {
+          "attack": 128.05,
+          "defense": 128.05
+        },
+        {
+          "attack": 141.19,
+          "defense": 141.19
+        },
+        {
+          "attack": 151.4,
+          "defense": 151.4
+        },
+        {
+          "attack": 161.64,
+          "defense": 161.64
+        },
+        {
+          "attack": 171.87,
+          "defense": 171.87
+        },
+        {
+          "attack": 182.08,
+          "defense": 182.08
+        },
+        {
+          "attack": 192.32,
+          "defense": 192.32
+        },
+        {
+          "attack": 210.72,
+          "defense": 210.72
+        },
+        {
+          "attack": 225.04,
+          "defense": 225.04
+        },
+        {
+          "attack": 239.34,
+          "defense": 239.34
+        },
+        {
+          "attack": 253.66,
+          "defense": 253.66
+        },
+        {
+          "attack": 267.98,
+          "defense": 267.98
+        },
+        {
+          "attack": 282.3,
+          "defense": 282.3
+        },
+        {
+          "attack": 308.07,
+          "defense": 308.07
+        },
+        {
+          "attack": 328.09,
+          "defense": 328.09
+        },
+        {
+          "attack": 348.14,
+          "defense": 348.14
+        },
+        {
+          "attack": 368.19,
+          "defense": 368.19
+        },
+        {
+          "attack": 388.23,
+          "defense": 388.23
+        },
+        {
+          "attack": 408.28,
+          "defense": 408.28
+        },
+        {
+          "attack": 444.36,
+          "defense": 444.36
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Thrud": {
+      "canonical_name": "Thrud",
+      "simulator_name": "Thrud",
+      "aliases": [],
+      "generation": 5,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 444.36,
+        "defense": 444.36
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 111.0,
+          "health": 111.0
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/thrud",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/thrud/",
+      "star_progression": [
+        {
+          "attack": 56.05,
+          "defense": 56.05
+        },
+        {
+          "attack": 61.27,
+          "defense": 61.27
+        },
+        {
+          "attack": 66.49,
+          "defense": 66.49
+        },
+        {
+          "attack": 71.71,
+          "defense": 71.71
+        },
+        {
+          "attack": 76.92,
+          "defense": 76.92
+        },
+        {
+          "attack": 82.14,
+          "defense": 82.14
+        },
+        {
+          "attack": 91.53,
+          "defense": 91.53
+        },
+        {
+          "attack": 98.83,
+          "defense": 98.83
+        },
+        {
+          "attack": 106.14,
+          "defense": 106.14
+        },
+        {
+          "attack": 113.44,
+          "defense": 113.44
+        },
+        {
+          "attack": 120.75,
+          "defense": 120.75
+        },
+        {
+          "attack": 128.05,
+          "defense": 128.05
+        },
+        {
+          "attack": 141.19,
+          "defense": 141.19
+        },
+        {
+          "attack": 151.4,
+          "defense": 151.4
+        },
+        {
+          "attack": 161.64,
+          "defense": 161.64
+        },
+        {
+          "attack": 171.87,
+          "defense": 171.87
+        },
+        {
+          "attack": 182.08,
+          "defense": 182.08
+        },
+        {
+          "attack": 192.32,
+          "defense": 192.32
+        },
+        {
+          "attack": 210.72,
+          "defense": 210.72
+        },
+        {
+          "attack": 225.04,
+          "defense": 225.04
+        },
+        {
+          "attack": 239.34,
+          "defense": 239.34
+        },
+        {
+          "attack": 253.66,
+          "defense": 253.66
+        },
+        {
+          "attack": 267.98,
+          "defense": 267.98
+        },
+        {
+          "attack": 282.3,
+          "defense": 282.3
+        },
+        {
+          "attack": 308.07,
+          "defense": 308.07
+        },
+        {
+          "attack": 328.09,
+          "defense": 328.09
+        },
+        {
+          "attack": 348.14,
+          "defense": 348.14
+        },
+        {
+          "attack": 368.19,
+          "defense": 368.19
+        },
+        {
+          "attack": 388.23,
+          "defense": 388.23
+        },
+        {
+          "attack": 408.28,
+          "defense": 408.28
+        },
+        {
+          "attack": 444.36,
+          "defense": 444.36
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Vivian": {
+      "canonical_name": "Vivian",
+      "simulator_name": "Vivian",
+      "aliases": [],
+      "generation": 5,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 444.36,
+        "defense": 444.36
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 111.0,
+          "health": 111.0
+        },
+        "active_expedition_stat": "defense",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/vivian",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/vivian/",
+      "star_progression": [
+        {
+          "attack": 56.05,
+          "defense": 56.05
+        },
+        {
+          "attack": 61.27,
+          "defense": 61.27
+        },
+        {
+          "attack": 66.49,
+          "defense": 66.49
+        },
+        {
+          "attack": 71.71,
+          "defense": 71.71
+        },
+        {
+          "attack": 76.92,
+          "defense": 76.92
+        },
+        {
+          "attack": 82.14,
+          "defense": 82.14
+        },
+        {
+          "attack": 91.53,
+          "defense": 91.53
+        },
+        {
+          "attack": 98.83,
+          "defense": 98.83
+        },
+        {
+          "attack": 106.14,
+          "defense": 106.14
+        },
+        {
+          "attack": 113.44,
+          "defense": 113.44
+        },
+        {
+          "attack": 120.75,
+          "defense": 120.75
+        },
+        {
+          "attack": 128.05,
+          "defense": 128.05
+        },
+        {
+          "attack": 141.19,
+          "defense": 141.19
+        },
+        {
+          "attack": 151.4,
+          "defense": 151.4
+        },
+        {
+          "attack": 161.64,
+          "defense": 161.64
+        },
+        {
+          "attack": 171.87,
+          "defense": 171.87
+        },
+        {
+          "attack": 182.08,
+          "defense": 182.08
+        },
+        {
+          "attack": 192.32,
+          "defense": 192.32
+        },
+        {
+          "attack": 210.72,
+          "defense": 210.72
+        },
+        {
+          "attack": 225.04,
+          "defense": 225.04
+        },
+        {
+          "attack": 239.34,
+          "defense": 239.34
+        },
+        {
+          "attack": 253.66,
+          "defense": 253.66
+        },
+        {
+          "attack": 267.98,
+          "defense": 267.98
+        },
+        {
+          "attack": 282.3,
+          "defense": 282.3
+        },
+        {
+          "attack": 308.07,
+          "defense": 308.07
+        },
+        {
+          "attack": 328.09,
+          "defense": 328.09
+        },
+        {
+          "attack": 348.14,
+          "defense": 348.14
+        },
+        {
+          "attack": 368.19,
+          "defense": 368.19
+        },
+        {
+          "attack": 388.23,
+          "defense": 388.23
+        },
+        {
+          "attack": 408.28,
+          "defense": 408.28
+        },
+        {
+          "attack": 444.36,
+          "defense": 444.36
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Triton": {
+      "canonical_name": "Triton",
+      "simulator_name": "Triton",
+      "aliases": [],
+      "generation": 6,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 540.43,
+        "defense": 540.43
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 133.5,
+          "health": 133.5
+        },
+        "active_expedition_stat": "defense",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/triton",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/triton/",
+      "star_progression": [
+        {
+          "attack": 68.17,
+          "defense": 68.17
+        },
+        {
+          "attack": 74.52,
+          "defense": 74.52
+        },
+        {
+          "attack": 80.86,
+          "defense": 80.86
+        },
+        {
+          "attack": 87.21,
+          "defense": 87.21
+        },
+        {
+          "attack": 93.56,
+          "defense": 93.56
+        },
+        {
+          "attack": 99.9,
+          "defense": 99.9
+        },
+        {
+          "attack": 111.32,
+          "defense": 111.32
+        },
+        {
+          "attack": 120.2,
+          "defense": 120.2
+        },
+        {
+          "attack": 129.09,
+          "defense": 129.09
+        },
+        {
+          "attack": 137.97,
+          "defense": 137.97
+        },
+        {
+          "attack": 146.85,
+          "defense": 146.85
+        },
+        {
+          "attack": 155.74,
+          "defense": 155.74
+        },
+        {
+          "attack": 171.72,
+          "defense": 171.72
+        },
+        {
+          "attack": 184.14,
+          "defense": 184.14
+        },
+        {
+          "attack": 196.59,
+          "defense": 196.59
+        },
+        {
+          "attack": 209.03,
+          "defense": 209.03
+        },
+        {
+          "attack": 221.45,
+          "defense": 221.45
+        },
+        {
+          "attack": 233.9,
+          "defense": 233.9
+        },
+        {
+          "attack": 256.28,
+          "defense": 256.28
+        },
+        {
+          "attack": 273.7,
+          "defense": 273.7
+        },
+        {
+          "attack": 291.09,
+          "defense": 291.09
+        },
+        {
+          "attack": 308.5,
+          "defense": 308.5
+        },
+        {
+          "attack": 325.92,
+          "defense": 325.92
+        },
+        {
+          "attack": 343.33,
+          "defense": 343.33
+        },
+        {
+          "attack": 374.68,
+          "defense": 374.68
+        },
+        {
+          "attack": 399.03,
+          "defense": 399.03
+        },
+        {
+          "attack": 423.41,
+          "defense": 423.41
+        },
+        {
+          "attack": 447.8,
+          "defense": 447.8
+        },
+        {
+          "attack": 472.18,
+          "defense": 472.18
+        },
+        {
+          "attack": 496.56,
+          "defense": 496.56
+        },
+        {
+          "attack": 540.43,
+          "defense": 540.43
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Sophia": {
+      "canonical_name": "Sophia",
+      "simulator_name": "Sophia",
+      "aliases": [],
+      "generation": 6,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 540.43,
+        "defense": 540.43
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 133.5,
+          "health": 133.5
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/sophia",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/sophia/",
+      "star_progression": [
+        {
+          "attack": 68.17,
+          "defense": 68.17
+        },
+        {
+          "attack": 74.52,
+          "defense": 74.52
+        },
+        {
+          "attack": 80.86,
+          "defense": 80.86
+        },
+        {
+          "attack": 87.21,
+          "defense": 87.21
+        },
+        {
+          "attack": 93.56,
+          "defense": 93.56
+        },
+        {
+          "attack": 99.9,
+          "defense": 99.9
+        },
+        {
+          "attack": 111.32,
+          "defense": 111.32
+        },
+        {
+          "attack": 120.2,
+          "defense": 120.2
+        },
+        {
+          "attack": 129.09,
+          "defense": 129.09
+        },
+        {
+          "attack": 137.97,
+          "defense": 137.97
+        },
+        {
+          "attack": 146.85,
+          "defense": 146.85
+        },
+        {
+          "attack": 155.74,
+          "defense": 155.74
+        },
+        {
+          "attack": 171.72,
+          "defense": 171.72
+        },
+        {
+          "attack": 184.14,
+          "defense": 184.14
+        },
+        {
+          "attack": 196.59,
+          "defense": 196.59
+        },
+        {
+          "attack": 209.03,
+          "defense": 209.03
+        },
+        {
+          "attack": 221.45,
+          "defense": 221.45
+        },
+        {
+          "attack": 233.9,
+          "defense": 233.9
+        },
+        {
+          "attack": 256.28,
+          "defense": 256.28
+        },
+        {
+          "attack": 273.7,
+          "defense": 273.7
+        },
+        {
+          "attack": 291.09,
+          "defense": 291.09
+        },
+        {
+          "attack": 308.5,
+          "defense": 308.5
+        },
+        {
+          "attack": 325.92,
+          "defense": 325.92
+        },
+        {
+          "attack": 343.33,
+          "defense": 343.33
+        },
+        {
+          "attack": 374.68,
+          "defense": 374.68
+        },
+        {
+          "attack": 399.03,
+          "defense": 399.03
+        },
+        {
+          "attack": 423.41,
+          "defense": 423.41
+        },
+        {
+          "attack": 447.8,
+          "defense": 447.8
+        },
+        {
+          "attack": 472.18,
+          "defense": 472.18
+        },
+        {
+          "attack": 496.56,
+          "defense": 496.56
+        },
+        {
+          "attack": 540.43,
+          "defense": 540.43
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Yang": {
+      "canonical_name": "Yang",
+      "simulator_name": "Yang",
+      "aliases": [],
+      "generation": 6,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 540.43,
+        "defense": 540.43
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 133.5,
+          "health": 133.5
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/yang",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/yang/",
+      "star_progression": [
+        {
+          "attack": 68.17,
+          "defense": 68.17
+        },
+        {
+          "attack": 74.52,
+          "defense": 74.52
+        },
+        {
+          "attack": 80.86,
+          "defense": 80.86
+        },
+        {
+          "attack": 87.21,
+          "defense": 87.21
+        },
+        {
+          "attack": 93.56,
+          "defense": 93.56
+        },
+        {
+          "attack": 99.9,
+          "defense": 99.9
+        },
+        {
+          "attack": 111.32,
+          "defense": 111.32
+        },
+        {
+          "attack": 120.2,
+          "defense": 120.2
+        },
+        {
+          "attack": 129.09,
+          "defense": 129.09
+        },
+        {
+          "attack": 137.97,
+          "defense": 137.97
+        },
+        {
+          "attack": 146.85,
+          "defense": 146.85
+        },
+        {
+          "attack": 155.74,
+          "defense": 155.74
+        },
+        {
+          "attack": 171.72,
+          "defense": 171.72
+        },
+        {
+          "attack": 184.14,
+          "defense": 184.14
+        },
+        {
+          "attack": 196.59,
+          "defense": 196.59
+        },
+        {
+          "attack": 209.03,
+          "defense": 209.03
+        },
+        {
+          "attack": 221.45,
+          "defense": 221.45
+        },
+        {
+          "attack": 233.9,
+          "defense": 233.9
+        },
+        {
+          "attack": 256.28,
+          "defense": 256.28
+        },
+        {
+          "attack": 273.7,
+          "defense": 273.7
+        },
+        {
+          "attack": 291.09,
+          "defense": 291.09
+        },
+        {
+          "attack": 308.5,
+          "defense": 308.5
+        },
+        {
+          "attack": 325.92,
+          "defense": 325.92
+        },
+        {
+          "attack": 343.33,
+          "defense": 343.33
+        },
+        {
+          "attack": 374.68,
+          "defense": 374.68
+        },
+        {
+          "attack": 399.03,
+          "defense": 399.03
+        },
+        {
+          "attack": 423.41,
+          "defense": 423.41
+        },
+        {
+          "attack": 447.8,
+          "defense": 447.8
+        },
+        {
+          "attack": 472.18,
+          "defense": 472.18
+        },
+        {
+          "attack": 496.56,
+          "defense": 496.56
+        },
+        {
+          "attack": 540.43,
+          "defense": 540.43
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Charles": {
+      "canonical_name": "Charles",
+      "simulator_name": "Charles",
+      "aliases": [],
+      "generation": 7,
+      "rarity": "mythic",
+      "type": "inf",
+      "max_5star_base_stats": {
+        "attack": 650.52,
+        "defense": 650.52
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 160.5,
+          "health": 160.5
+        },
+        "active_expedition_stat": "health",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/charles",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/charles/",
+      "star_progression": [
+        {
+          "attack": 82.06,
+          "defense": 82.06
+        },
+        {
+          "attack": 89.7,
+          "defense": 89.7
+        },
+        {
+          "attack": 97.34,
+          "defense": 97.34
+        },
+        {
+          "attack": 104.97,
+          "defense": 104.97
+        },
+        {
+          "attack": 112.61,
+          "defense": 112.61
+        },
+        {
+          "attack": 120.25,
+          "defense": 120.25
+        },
+        {
+          "attack": 134.0,
+          "defense": 134.0
+        },
+        {
+          "attack": 144.69,
+          "defense": 144.69
+        },
+        {
+          "attack": 155.38,
+          "defense": 155.38
+        },
+        {
+          "attack": 166.07,
+          "defense": 166.07
+        },
+        {
+          "attack": 176.77,
+          "defense": 176.77
+        },
+        {
+          "attack": 187.46,
+          "defense": 187.46
+        },
+        {
+          "attack": 206.7,
+          "defense": 206.7
+        },
+        {
+          "attack": 221.65,
+          "defense": 221.65
+        },
+        {
+          "attack": 236.63,
+          "defense": 236.63
+        },
+        {
+          "attack": 251.62,
+          "defense": 251.62
+        },
+        {
+          "attack": 266.56,
+          "defense": 266.56
+        },
+        {
+          "attack": 281.55,
+          "defense": 281.55
+        },
+        {
+          "attack": 308.49,
+          "defense": 308.49
+        },
+        {
+          "attack": 329.45,
+          "defense": 329.45
+        },
+        {
+          "attack": 350.38,
+          "defense": 350.38
+        },
+        {
+          "attack": 371.35,
+          "defense": 371.35
+        },
+        {
+          "attack": 392.31,
+          "defense": 392.31
+        },
+        {
+          "attack": 413.27,
+          "defense": 413.27
+        },
+        {
+          "attack": 451.0,
+          "defense": 451.0
+        },
+        {
+          "attack": 480.32,
+          "defense": 480.32
+        },
+        {
+          "attack": 509.67,
+          "defense": 509.67
+        },
+        {
+          "attack": 539.01,
+          "defense": 539.01
+        },
+        {
+          "attack": 568.36,
+          "defense": 568.36
+        },
+        {
+          "attack": 597.71,
+          "defense": 597.71
+        },
+        {
+          "attack": 650.52,
+          "defense": 650.52
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Ava": {
+      "canonical_name": "Ava",
+      "simulator_name": "Ava",
+      "aliases": [],
+      "generation": 7,
+      "rarity": "mythic",
+      "type": "lanc",
+      "max_5star_base_stats": {
+        "attack": 650.52,
+        "defense": 650.52
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "offensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 160.5,
+          "health": 160.5
+        },
+        "active_expedition_stat": "lethality",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/ava",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/ava/",
+      "star_progression": [
+        {
+          "attack": 82.06,
+          "defense": 82.06
+        },
+        {
+          "attack": 89.7,
+          "defense": 89.7
+        },
+        {
+          "attack": 97.34,
+          "defense": 97.34
+        },
+        {
+          "attack": 104.97,
+          "defense": 104.97
+        },
+        {
+          "attack": 112.61,
+          "defense": 112.61
+        },
+        {
+          "attack": 120.25,
+          "defense": 120.25
+        },
+        {
+          "attack": 134.0,
+          "defense": 134.0
+        },
+        {
+          "attack": 144.69,
+          "defense": 144.69
+        },
+        {
+          "attack": 155.38,
+          "defense": 155.38
+        },
+        {
+          "attack": 166.07,
+          "defense": 166.07
+        },
+        {
+          "attack": 176.77,
+          "defense": 176.77
+        },
+        {
+          "attack": 187.46,
+          "defense": 187.46
+        },
+        {
+          "attack": 206.7,
+          "defense": 206.7
+        },
+        {
+          "attack": 221.65,
+          "defense": 221.65
+        },
+        {
+          "attack": 236.63,
+          "defense": 236.63
+        },
+        {
+          "attack": 251.62,
+          "defense": 251.62
+        },
+        {
+          "attack": 266.56,
+          "defense": 266.56
+        },
+        {
+          "attack": 281.55,
+          "defense": 281.55
+        },
+        {
+          "attack": 308.49,
+          "defense": 308.49
+        },
+        {
+          "attack": 329.45,
+          "defense": 329.45
+        },
+        {
+          "attack": 350.38,
+          "defense": 350.38
+        },
+        {
+          "attack": 371.35,
+          "defense": 371.35
+        },
+        {
+          "attack": 392.31,
+          "defense": 392.31
+        },
+        {
+          "attack": 413.27,
+          "defense": 413.27
+        },
+        {
+          "attack": 451.0,
+          "defense": 451.0
+        },
+        {
+          "attack": 480.32,
+          "defense": 480.32
+        },
+        {
+          "attack": 509.67,
+          "defense": 509.67
+        },
+        {
+          "attack": 539.01,
+          "defense": 539.01
+        },
+        {
+          "attack": 568.36,
+          "defense": 568.36
+        },
+        {
+          "attack": 597.71,
+          "defense": 597.71
+        },
+        {
+          "attack": 650.52,
+          "defense": 650.52
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    },
+    "Wee & Woo": {
+      "canonical_name": "Wee & Woo",
+      "simulator_name": "Weewoo",
+      "aliases": [
+        "Wee and Woo",
+        "Wee&Woo",
+        "Wee Woo"
+      ],
+      "generation": 7,
+      "rarity": "mythic",
+      "type": "mark",
+      "max_5star_base_stats": {
+        "attack": 650.52,
+        "defense": 650.52
+      },
+      "exclusive_gear": {
+        "has_widget": true,
+        "widget_type": "defensive",
+        "max_level": 10,
+        "max_passive_expedition": {
+          "lethality": 160.5,
+          "health": 160.5
+        },
+        "active_expedition_stat": "attack",
+        "active_expedition_values": [
+          5.0,
+          7.5,
+          10.0,
+          12.5,
+          15.0
+        ]
+      },
+      "skill_slots": [
+        "1",
+        "2",
+        "3"
+      ],
+      "skill_slots_explicit": false,
+      "source": "https://www.kingshotapp.com/heroes/wee-woo",
+      "widget_stats_source": "https://ks-toolkit.com/data/heroes/wee-and-woo/",
+      "star_progression": [
+        {
+          "attack": 82.06,
+          "defense": 82.06
+        },
+        {
+          "attack": 89.7,
+          "defense": 89.7
+        },
+        {
+          "attack": 97.34,
+          "defense": 97.34
+        },
+        {
+          "attack": 104.97,
+          "defense": 104.97
+        },
+        {
+          "attack": 112.61,
+          "defense": 112.61
+        },
+        {
+          "attack": 120.25,
+          "defense": 120.25
+        },
+        {
+          "attack": 134.0,
+          "defense": 134.0
+        },
+        {
+          "attack": 144.69,
+          "defense": 144.69
+        },
+        {
+          "attack": 155.38,
+          "defense": 155.38
+        },
+        {
+          "attack": 166.07,
+          "defense": 166.07
+        },
+        {
+          "attack": 176.77,
+          "defense": 176.77
+        },
+        {
+          "attack": 187.46,
+          "defense": 187.46
+        },
+        {
+          "attack": 206.7,
+          "defense": 206.7
+        },
+        {
+          "attack": 221.65,
+          "defense": 221.65
+        },
+        {
+          "attack": 236.63,
+          "defense": 236.63
+        },
+        {
+          "attack": 251.62,
+          "defense": 251.62
+        },
+        {
+          "attack": 266.56,
+          "defense": 266.56
+        },
+        {
+          "attack": 281.55,
+          "defense": 281.55
+        },
+        {
+          "attack": 308.49,
+          "defense": 308.49
+        },
+        {
+          "attack": 329.45,
+          "defense": 329.45
+        },
+        {
+          "attack": 350.38,
+          "defense": 350.38
+        },
+        {
+          "attack": 371.35,
+          "defense": 371.35
+        },
+        {
+          "attack": 392.31,
+          "defense": 392.31
+        },
+        {
+          "attack": 413.27,
+          "defense": 413.27
+        },
+        {
+          "attack": 451.0,
+          "defense": 451.0
+        },
+        {
+          "attack": 480.32,
+          "defense": 480.32
+        },
+        {
+          "attack": 509.67,
+          "defense": 509.67
+        },
+        {
+          "attack": 539.01,
+          "defense": 539.01
+        },
+        {
+          "attack": 568.36,
+          "defense": 568.36
+        },
+        {
+          "attack": 597.71,
+          "defense": 597.71
+        },
+        {
+          "attack": 650.52,
+          "defense": 650.52
+        }
+      ],
+      "star_progression_source": "https://kingshotdata.com/heroes/"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+playwright
+numpy
+pandas
+matplotlib
+scipy
+statsmodels

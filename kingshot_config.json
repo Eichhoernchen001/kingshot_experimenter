@@ -1,0 +1,623 @@
+{
+  "schema_version": 9,
+  "profiles": {
+    "A": {
+      "player_file": "json/playerA_data.json",
+      "base_stats": {
+        "inf": {
+          "attack": 996.4,
+          "defense": 983.8,
+          "lethality": 970.3,
+          "health": 966.5
+        },
+        "lanc": {
+          "attack": 988.1,
+          "defense": 975.6,
+          "lethality": 953.0,
+          "health": 936.2
+        },
+        "mark": {
+          "attack": 990.5,
+          "defense": 975.6,
+          "lethality": 950.9,
+          "health": 940.1
+        }
+      },
+      "special_bonuses": {
+        "petLevels": {
+          "alpha-black-panther": 10,
+          "giant-rhino": 10,
+          "regal-white-lion": 10,
+          "ironclad-war-elephant": 10,
+          "ironclad-war-bear": 10,
+          "grizzly-bear": 0,
+          "moose": 0
+        },
+        "city": {
+          "lethality": 2,
+          "attack": 2,
+          "defense": 2,
+          "health": 2,
+          "enemyAttack": 0,
+          "enemyDefense": 0
+        },
+        "appointment": {
+          "kingdom": 0,
+          "power": 0
+        }
+      },
+      "hero_progression": {
+        "enabled": true,
+        "stars_enabled": true,
+        "widgets_enabled": true,
+        "stars_source": "manual",
+        "defaults": {
+          "star_step": 30,
+          "widget_level": 10
+        },
+        "heroes": {}
+      },
+      "gear_enabled": true,
+      "special_bonuses_enabled": true,
+      "hero_gear": {
+        "inf": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          }
+        },
+        "cav": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          }
+        },
+        "arch": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          }
+        }
+      }
+    },
+    "B": {
+      "player_file": "json/playerB_data.json",
+      "base_stats": {
+        "inf": {
+          "attack": 2200.0,
+          "defense": 2200.0,
+          "lethality": 2200.0,
+          "health": 2200.0
+        },
+        "lanc": {
+          "attack": 2200.0,
+          "defense": 2200.0,
+          "lethality": 2200.0,
+          "health": 2200.0
+        },
+        "mark": {
+          "attack": 2200.0,
+          "defense": 2200.0,
+          "lethality": 2200.0,
+          "health": 2200.0
+        }
+      },
+      "special_bonuses": {
+        "petLevels": {
+          "alpha-black-panther": 0,
+          "giant-rhino": 0,
+          "regal-white-lion": 0,
+          "ironclad-war-elephant": 0,
+          "ironclad-war-bear": 0,
+          "grizzly-bear": 8,
+          "moose": 7
+        },
+        "city": {
+          "lethality": 0,
+          "attack": 0,
+          "defense": 0,
+          "health": 0,
+          "enemyAttack": 2,
+          "enemyDefense": 2
+        },
+        "appointment": {
+          "kingdom": 0,
+          "power": 0
+        }
+      },
+      "hero_progression": {
+        "enabled": false,
+        "stars_enabled": false,
+        "widgets_enabled": false,
+        "stars_source": "manual",
+        "defaults": {
+          "star_step": 30,
+          "widget_level": 0
+        },
+        "heroes": {}
+      },
+      "gear_enabled": false,
+      "special_bonuses_enabled": true,
+      "hero_gear": {
+        "inf": {
+          "helm": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "gloves": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "chest": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "boots": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          }
+        },
+        "cav": {
+          "helm": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "gloves": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "chest": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "boots": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          }
+        },
+        "arch": {
+          "helm": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "gloves": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "chest": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          },
+          "boots": {
+            "quality": "none",
+            "enhancement": 0,
+            "mastery": 0
+          }
+        }
+      }
+    }
+  },
+  "assignment": {
+    "attacker": "A",
+    "defender": "B"
+  },
+  "lookups": {
+    "hero_stats": "json/kingshot_hero_data.json",
+    "hero_progression": "json/kingshot_hero_data.json"
+  },
+  "battle_options": {
+    "apply_special_bonuses": true
+  },
+  "run": {
+    "simulations_per_batch": 100,
+    "batches_per_condition": 1,
+    "resume": false,
+    "headless": true,
+    "timeout_seconds": 30,
+    "delay_between_batches_seconds": 0.5
+  },
+  "battle_setup": {
+    "attacker": {
+      "total_troops": 1600000,
+      "troop_quality": {
+        "inf": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "cav": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "arch": {
+          "tier": 11,
+          "tg_level": 8
+        }
+      },
+      "base_stat_override": null
+    },
+    "defender": {
+      "total_troops": 1600000,
+      "troop_quality": {
+        "inf": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "cav": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "arch": {
+          "tier": 11,
+          "tg_level": 8
+        }
+      },
+      "base_stat_override": 2200
+    }
+  },
+  "lead_troop": {
+    "attacker": {
+      "formations": [
+        {
+          "joiners": [
+            "Yang",
+            "Triton",
+            "Gordon",
+            "Fahd"
+          ],
+          "leads": {
+            "inf": "Triton",
+            "cav": "Thrud",
+            "arch": "Marlin"
+          },
+          "troop_variants_pct": [
+            [
+              70,
+              30,
+              0
+            ],
+            [
+              60,
+              40,
+              0
+            ],
+            [
+              50,
+              50,
+              0
+            ],
+            [
+              40,
+              60,
+              0
+            ],
+            [
+              30,
+              70,
+              0
+            ]
+          ],
+          "troop_variant_groups": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "troop_range_lines": [
+            "70:30/30:70/0 - 10"
+          ],
+          "widget_buffs": {
+            "inf": true,
+            "cav": true,
+            "arch": true
+          }
+        },
+        {
+          "joiners": [
+            "Vivian",
+            "Thrud",
+            "Amane",
+            "Chenko"
+          ],
+          "leads": {
+            "inf": "Triton",
+            "cav": "Petra",
+            "arch": "Yang"
+          },
+          "troop_variants_pct": [
+            [
+              20,
+              5,
+              75
+            ],
+            [
+              30,
+              5,
+              65
+            ],
+            [
+              40,
+              5,
+              55
+            ],
+            [
+              50,
+              5,
+              45
+            ],
+            [
+              60,
+              5,
+              35
+            ],
+            [
+              20,
+              10,
+              70
+            ],
+            [
+              30,
+              10,
+              60
+            ],
+            [
+              40,
+              10,
+              50
+            ],
+            [
+              50,
+              10,
+              40
+            ],
+            [
+              60,
+              10,
+              30
+            ],
+            [
+              20,
+              15,
+              65
+            ],
+            [
+              30,
+              15,
+              55
+            ],
+            [
+              40,
+              15,
+              45
+            ],
+            [
+              50,
+              15,
+              35
+            ],
+            [
+              60,
+              15,
+              25
+            ]
+          ],
+          "troop_variant_groups": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            3
+          ],
+          "troop_range_lines": [
+            "20:60/5/75:35 - 10",
+            "20:60/10/70:30 - 10",
+            "20:60/15/65:25 - 10"
+          ],
+          "widget_buffs": {
+            "inf": true,
+            "cav": true,
+            "arch": true
+          }
+        }
+      ]
+    },
+    "defender": {
+      "formations": [
+        {
+          "joiners": null,
+          "leads": {
+            "inf": "Triton",
+            "cav": "Petra",
+            "arch": "Yang"
+          },
+          "troop_variants_pct": [
+            [
+              50,
+              10,
+              40
+            ]
+          ],
+          "troop_variant_groups": [
+            1
+          ],
+          "troop_range_lines": [
+            "50/10/40"
+          ],
+          "widget_buffs": {
+            "inf": true,
+            "cav": true,
+            "arch": true
+          }
+        }
+      ]
+    },
+    "only_matchups": null
+  },
+  "joiner": {
+    "attacker": {
+      "leads": {
+        "inf": "Triton",
+        "cav": "Thrud",
+        "arch": "Marlin"
+      },
+      "widget_buffs": {
+        "inf": true,
+        "cav": true,
+        "arch": true
+      },
+      "troop_percentages": [
+        50,
+        50,
+        0
+      ],
+      "pools": {
+        "4": [],
+        "3": [],
+        "2": [],
+        "1": []
+      },
+      "manual_slots": [
+        [
+          "Hilde"
+        ],
+        [
+          "Thrud"
+        ],
+        [
+          "Amadeus"
+        ],
+        [
+          "Triton"
+        ]
+      ]
+    },
+    "defender": {
+      "leads": {
+        "inf": "Triton",
+        "cav": "Sophia",
+        "arch": "Vivian"
+      },
+      "widget_buffs": {
+        "inf": true,
+        "cav": true,
+        "arch": true
+      },
+      "troop_percentages": [
+        60,
+        10,
+        30
+      ],
+      "pools": {
+        "4": [],
+        "3": [],
+        "2": [],
+        "1": [
+          "Amane",
+          "Chenko",
+          "Fahd",
+          "Gordon",
+          "Hilde",
+          "Howard",
+          "Petra",
+          "Saul",
+          "Thrud",
+          "Triton",
+          "Vivian",
+          "Yang"
+        ]
+      },
+      "manual_slots": [
+        [],
+        [],
+        [],
+        []
+      ]
+    }
+  },
+  "plotter": {
+    "plot_by": "defender",
+    "show_50_percent_reference": false,
+    "show_mean_labels": false
+  },
+  "analysis": {
+    "side": "auto",
+    "selection_method": "raw",
+    "synergy_threshold": 0.05,
+    "pair_selection_method": "raw",
+    "pair_synergy_threshold": 0.05,
+    "triple_selection_method": "raw",
+    "triple_synergy_threshold": 0.05,
+    "pair_synergy": true,
+    "triple_synergy": true,
+    "top_n": 10
+  }
+}
