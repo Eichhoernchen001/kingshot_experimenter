@@ -1,0 +1,20 @@
+Swap button layout
+
+All four existing swap buttons now sit between the attacker and defender
+panels they control. Each uses the same compact, padded two-line label:
+  Swap
+  attacker <-> defender
+
+Page 1 groups each player's profile/stats and shared troop settings in one
+column, with its single whole-page swap button between the two columns.
+The Joiner page has a centered button for each pair of fixed setups, joiner
+pools and manual-slot panels. Swap behavior is unchanged.
+
+The minimum window width is now 1180 pixels so both columns and the center
+buttons remain visible. The import row retains its corrected labels.
+
+All 17 regression tests pass. GUI geometry checks confirm all four buttons
+sit between their target panels without overlap at the minimum window width.
+
+Install by replacing your app folder's files with those from this ZIP.
+Keep your existing configuration, json and results folders.

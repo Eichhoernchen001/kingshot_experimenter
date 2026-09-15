@@ -47,6 +47,11 @@ automatically uses the standard zero-sum interaction convention:
 This makes pair synergies interpretable as deviations from each hero's average
 pair compatibility, while the additive hero terms absorb average partner value.
 
+For mixed repeat-limit designs, remaining aliases are identified by minimizing
+triple coefficient norm first, then pair norm among equivalent fits. This adds
+only the necessary constraints and preserves the fitted-value space. Reported
+synergy effects and tests are conditional on the stated identification convention.
+
 Usage
 -----
 python kingshot_full_model_analysis.py data.csv
@@ -89,6 +94,7 @@ import itertools
 import json
 import shutil
 import warnings
+import textwrap
 from dataclasses import dataclass
 from pathlib import Path
 from kingshot_paths import JSON_DIR
@@ -310,6 +316,42 @@ def load_files(paths: list[Path], trials_per_row: int, requested_side: str):
     )
 
 
+def conditional_composition(cond, heroes):
+    """Absorb mandatory copies into the baseline; model the remaining slots."""
+    fixed = {h: int(cond[f'n_{h}'].min()) for h in heroes if cond[f'n_{h}'].min() > 0}
+    model_cond = cond.copy()
+    for h, count in fixed.items():
+        model_cond[f'n_{h}'] -= count
+    active = [h for h in heroes if model_cond[f'n_{h}'].max() > 0]
+    if not active:
+        raise RuntimeError('There are no varying hero slots to analyze. Test different lineups.')
+    return model_cond, active, fixed
+
+
+def empty_synergy_table(layer):
+    columns = [layer, 'hero_a', 'hero_b'] + (['hero_c'] if layer == 'triple' else [])
+    columns += ['effect_pp', 'se_pp', 'ci_low', 'ci_high', 'p_value', 'p_holm',
+                'significant_holm_0_05', 'p_fdr_bh', 'significant_fdr_0_05']
+    return pd.DataFrame({c: pd.Series(dtype='float64' if c not in (layer, 'hero_a', 'hero_b', 'hero_c') else 'object') for c in columns})
+
+
+def fit_supported_layer(cond, X, lower_X, fit_call, label):
+    rank = np.linalg.matrix_rank(np.asarray(X, float))
+    if rank <= np.linalg.matrix_rank(np.asarray(lower_X, float)):
+        return None, f'{label} synergy unavailable: these interactions add no independently estimable information beyond the lower-order model.'
+    if rank >= len(cond):
+        return None, (f'{label} synergy unavailable: the full model uses all {len(cond)} independent lineup observations '
+                      '(zero residual degrees of freedom). This analysis cannot provide its current uncertainty estimates. '
+                      'Repeating the same lineups does not resolve this; use a richer lineup design or a lower-order model.')
+    try:
+        fit = fit_call()
+    except (RuntimeError, np.linalg.LinAlgError) as exc:
+        return None, f'{label} synergy unavailable: {exc}'
+    if not np.isfinite(fit.covariance).all():
+        return None, f'{label} synergy unavailable: the fit did not produce finite uncertainty estimates.'
+    return fit, None
+
+
 def choose_reference(heroes: list[str]) -> str:
     return "Petra" if "Petra" in heroes else heroes[-1]
 
@@ -424,7 +466,7 @@ def can_use_hierarchical_pair_triple_constraints(
     )
     B = null_space(R)
     rank_reduced = np.linalg.matrix_rank(np.asarray(X, float) @ B)
-    if rank_reduced != B.shape[1]:
+    if rank_reduced != B.shape[1] or B.shape[1] != np.linalg.matrix_rank(np.asarray(X, float)):
         return False, None
     return True, R
 
@@ -601,6 +643,57 @@ def can_use_minimal_triple_layer_constraints(
     return True, R
 
 
+def minimal_interaction_constraints(X: pd.DataFrame):
+    """Identify aliases by minimizing triple norm, then remaining pair norm.
+
+    Only null directions are constrained: the fitted-value space is unchanged.
+    No main/duplicate constraint is allowed. Individual effects and their tests
+    are conditional on this convention, not uniquely identified raw effects.
+    """
+    Xarr = np.asarray(X, dtype=float)
+    rank = np.linalg.matrix_rank(Xarr)
+    N = null_space(Xarr)
+    deficiency = X.shape[1] - rank
+    if deficiency <= 0 or N.shape[1] != deficiency:
+        return False, None
+    rows = []
+    # Use an absolute tolerance relative to the orthonormal null basis so
+    # roundoff in a layer with no aliases is not mistaken for information.
+    tol = 10 * max(Xarr.shape) * np.finfo(float).eps
+    for prefix in ("triple_", "pair_"):
+        indices = [i for i, c in enumerate(X.columns) if c.startswith(prefix)]
+        if not indices or N.shape[1] == 0:
+            continue
+        U, s, Vh = np.linalg.svd(N[indices, :], full_matrices=True)
+        k = int(np.sum(s > tol))
+        if not k:
+            continue
+        R_layer = np.zeros((k, X.shape[1]))
+        R_layer[:, indices] = U[:, :k].T
+        rows.append(R_layer)
+        N = N @ Vh[k:, :].T
+    if N.shape[1] or not rows:
+        return False, None
+    R = np.vstack(rows)
+    B = null_space(R)
+    if R.shape[0] != deficiency or B.shape[1] != rank:
+        return False, None
+    if np.linalg.matrix_rank(Xarr @ B) != rank:
+        return False, None
+    return True, R
+
+
+def fit_minimal_interactions(cond: pd.DataFrame, X: pd.DataFrame, R: np.ndarray):
+    return fit_binomial_linear_constraints(
+        cond, X, R,
+        f"minimal interaction identification: {R.shape[0]} constraints; "
+        "minimize triple coefficient norm first, then remaining pair coefficient "
+        "norm among equivalent fits; all estimable model dimensions preserved. "
+        "Synergy effects, confidence intervals and p-values are conditional "
+        "on this convention; raw aliased coefficients are not uniquely estimable."
+    )
+
+
 def fit_full_triple_model(
     cond: pd.DataFrame,
     heroes: list[str],
@@ -663,6 +756,10 @@ def fit_full_triple_model(
                 "directions without discarding any estimable model dimension"
             ),
         )
+
+    okay, R = minimal_interaction_constraints(X_full)
+    if okay:
+        return fit_minimal_interactions(cond, X_full, R)
 
     raise RuntimeError(
         f"Full pair + triple model is rank-deficient: rank {rank} for "
@@ -807,6 +904,8 @@ def fit_selected_model(cond: pd.DataFrame, X: pd.DataFrame, label: str) -> FitRe
 
 
 def fit_metrics(cond: pd.DataFrame, fit: FitResult) -> dict[str, float]:
+    if fit is None:
+        return dict.fromkeys(('rmse_pp', 'mae_pp', 'deviance', 'residual_df', 'pearson_dispersion', 'gof_p'), float('nan'))
     observed = cond["p_observed"].to_numpy()
     pred = fit.prediction
     rmse = 100 * np.sqrt(np.mean((observed - pred) ** 2))
@@ -899,7 +998,7 @@ def can_use_zero_sum_synergy_constraints(
     # unidentified directions.
     rank_reduced = np.linalg.matrix_rank(np.asarray(X, float) @ B)
 
-    if rank_reduced != B.shape[1]:
+    if rank_reduced != B.shape[1] or B.shape[1] != np.linalg.matrix_rank(np.asarray(X, float)):
         return False, None
 
     return True, R
@@ -978,6 +1077,10 @@ def fit_full_model(
 
     if okay:
         return fit_binomial_zero_sum_synergies(cond, X_full, R)
+
+    okay, R = minimal_interaction_constraints(X_full)
+    if okay:
+        return fit_minimal_interactions(cond, X_full, R)
 
     raise RuntimeError(
         f"Full pair model is rank-deficient: rank {rank} for "
@@ -1219,6 +1322,8 @@ def prediction_plot_context_lines(
                 def_leads,
                 pct_tuple("attacker_troop_percentages"),
                 pct_tuple("defender_troop_percentages"),
+                str(data.get('player_names', {}).get('attacker') or 'Attacker'),
+                str(data.get('player_names', {}).get('defender') or 'Defender'),
             )
         )
 
@@ -1229,9 +1334,11 @@ def prediction_plot_context_lines(
         if mixed:
             atk_leads = def_leads = ()
             atk_pct = def_pct = None
+            atk_name, def_name = 'Attacker', 'Defender'
         else:
-            atk_leads, def_leads, atk_pct, def_pct = first
+            atk_leads, def_leads, atk_pct, def_pct, atk_name, def_name = first
     else:
+        atk_name, def_name = 'Attacker', 'Defender'
         atk = _profile_plot_info(attacker_json) or {}
         deff = _profile_plot_info(defender_json) or {}
         atk_leads = tuple(atk.get("leads", []) or [])
@@ -1246,11 +1353,11 @@ def prediction_plot_context_lines(
         if pct is None:
             pct_text = "not available"
         else:
-            pct_text = "/".join(_fmt_pct(v) for v in pct)
-        return f"{label}: {hero_text} – {pct_text}"
+            pct_text = "-".join(_fmt_pct(v) for v in pct)
+        return f"{label}: {hero_text} - {pct_text}"
 
-    atk_line = side_line("Attacker", atk_leads, atk_pct)
-    def_line = side_line("Defender", def_leads, def_pct)
+    atk_line = side_line(f'{atk_name} (attacker)', atk_leads, atk_pct)
+    def_line = side_line(f'{def_name} (defender)', def_leads, def_pct)
     if modeled_side == "defender":
         return [def_line, atk_line]
     return [atk_line, def_line]
@@ -1267,6 +1374,7 @@ def plot_prediction(
     model_name,
     context_lines,
     simulations_per_replicate,
+    modeled_side='attacker',
 ):
     pred = fit.prediction
 
@@ -1339,18 +1447,19 @@ def plot_prediction(
         loc="upper left",
         borderaxespad=0,
         fontsize=8.5,
-        title=f"Top {len(top)} model-predicted lineups",
+        title=f"Top {len(top)} {modeled_side} joiner lineups\nRanked by model prediction",
         title_fontsize=9.5,
     )
 
+    ax.set_title("\n".join(textwrap.fill(line, width=80) for line in ax.get_title().splitlines()), fontsize=12)
     fig.tight_layout(rect=[0, 0, 0.72, 1])
     fig.savefig(out_dir / filename, dpi=180)
     plt.close(fig)
     return res, top, avg_halfwidth_pp
 
-def plot_heroes(hero_tbl, out_dir, max_copy_plot=None):
+def plot_heroes(hero_tbl, out_dir, max_copy_plot=None, condition_note=''):
     hero_order = (
-        hero_tbl.loc[hero_tbl["copy"] == 1]
+        hero_tbl.sort_values('copy').drop_duplicates('hero')
         .sort_values("effect_pp", ascending=True)["hero"]
         .tolist()
     )
@@ -1426,7 +1535,7 @@ def plot_heroes(hero_tbl, out_dir, max_copy_plot=None):
     )
     ax.set_ylabel("Hero")
     ax.set_title(
-        "Contribution of individual hero's to the winrate",
+        "Contribution of individual heroes to the winrate" + ('\n' + condition_note if condition_note else ''),
         fontsize=14,
     )
 
@@ -1440,6 +1549,7 @@ def plot_heroes(hero_tbl, out_dir, max_copy_plot=None):
     )
 
     ax.legend()
+    ax.set_title("\n".join(textwrap.fill(line, width=80) for line in ax.get_title().splitlines()), fontsize=12)
     fig.tight_layout(rect=[0, 0.07, 1, 1])
 
     fig.savefig(
@@ -1456,6 +1566,7 @@ def plot_synergies(
     selection_method: str,
     threshold: float,
     filename: str,
+    condition_note: str = '',
 ):
     mask = significance_mask(syn, selection_method, threshold)
     d = syn.loc[mask].sort_values("effect_pp", ascending=True).reset_index(drop=True)
@@ -1480,14 +1591,15 @@ def plot_synergies(
     ax.set_yticks(y, labels, fontsize=8)
     ax.set_xlabel("Pair interaction effect (percentage points)")
     ax.set_ylabel("Hero pair")
-    parameterization = "Zero-sum interaction parameterization" if full_fit.constrained else "All pair terms fitted simultaneously"
+    parameterization = "Constrained interactions (see analysis summary)" if full_fit.constrained else "All pair terms fitted simultaneously"
     rule = "all estimable interactions" if selection_method == "all" or threshold >= 1 else f"{selection_method} p < {threshold:g}"
     ax.set_title(
         "Question: Which selected hero pairs show synergy or antagonism?\n"
-        f"{parameterization}; {rule}; error bars are CI 95%",
+        f"{parameterization}; {rule}; error bars are CI 95%" + ('\n' + condition_note if condition_note else ''),
         fontsize=14,
     )
     fig.text(0.5, 0.01, "* = significant at FDR 0.05; ** = significant at Holm 0.05", ha="center", fontsize=9)
+    ax.set_title("\n".join(textwrap.fill(line, width=80) for line in ax.get_title().splitlines()), fontsize=12)
     fig.tight_layout(rect=[0, 0.03, 1, 1])
     fig.savefig(out_dir / filename, dpi=180)
     plt.close(fig)
@@ -1500,6 +1612,7 @@ def plot_triple_synergies(
     selection_method: str,
     threshold: float,
     filename: str,
+    condition_note: str = '',
 ):
     """Plot only triple effects retained by the current selection rule."""
     if triple_tbl.empty:
@@ -1531,10 +1644,11 @@ def plot_triple_synergies(
     rule = "all estimable interactions" if selection_method == "all" or threshold >= 1 else f"{selection_method} p < {threshold:g}"
     ax.set_title(
         "Question: Which selected three-hero combinations show additional synergy or antagonism?\n"
-        f"{rule}; error bars are CI 95%",
+        f"{rule}; error bars are CI 95%" + ('\n' + condition_note if condition_note else ''),
         fontsize=14,
     )
     fig.text(0.5, 0.01, "* = significant at FDR 0.05; ** = significant at Holm 0.05", ha="center", fontsize=9)
+    ax.set_title("\n".join(textwrap.fill(line, width=80) for line in ax.get_title().splitlines()), fontsize=12)
     fig.tight_layout(rect=[0, 0.03, 1, 1])
     fig.savefig(out_dir / filename, dpi=180)
     plt.close(fig)
@@ -2574,27 +2688,45 @@ def main():
     if not args.pair_synergy:
         args.triple_synergy = False
 
-    X_base, reference, others, duplicate_terms = build_base_design(cond, heroes)
-    X_pair_full, pairs = add_pair_terms(cond, heroes, X_base)
-    X_triple_full, triples = add_triple_terms(cond, heroes, X_pair_full)
-
+    model_cond, model_heroes, fixed = conditional_composition(cond, heroes)
+    fixed_note = ('Mandatory copies absorbed into the baseline: ' + ', '.join(f'{h} x{n}' for h, n in fixed.items())
+                  + '. Effects describe the remaining slots conditional on these copies. For mandatory heroes, interactions refer only to additional copies.') if fixed else 'No mandatory hero copies.'
+    print(fixed_note)
+    condition_note = 'Conditional on mandatory ' + ', '.join(f'{h} x{n}' for h, n in fixed.items()) if fixed else ''
+    if condition_note:
+        plot_context_lines.append(condition_note)
+    effect_plot_context = '\n'.join(plot_context_lines)
+    X_base, reference, others, duplicate_terms = build_base_design(model_cond, model_heroes)
+    X_pair_full, pairs = add_pair_terms(model_cond, model_heroes, X_base)
+    X_triple_full, triples = add_triple_terms(model_cond, model_heroes, X_pair_full)
     base_rank = np.linalg.matrix_rank(np.asarray(X_base, dtype=float))
-    if base_rank != X_base.shape[1]:
-        raise RuntimeError(
-            f"Even the additive + duplicate model is rank-deficient "
-            f"(rank {base_rank}/{X_base.shape[1]})."
-        )
-
-    # Full interaction models remain the inference layer. The user-facing
-    # prediction model below includes only the enabled synergy layers and terms
-    # passing the selected threshold (or every term when threshold == 1).
-    base_fit = fit_binomial_direct(cond, X_base)
-    full_pair_fit = fit_full_model(cond, heroes, X_pair_full, pairs)
-    full_triple_fit = fit_full_triple_model(cond, heroes, X_triple_full, pairs, triples)
-
-    heroes_tbl = hero_effect_table(base_fit, heroes, others, reference, duplicate_terms)
-    pair_tbl = synergy_effect_table(full_pair_fit, pairs)
-    triple_tbl = triple_effect_table(full_triple_fit, triples)
+    if base_rank != X_base.shape[1] or base_rank >= len(cond):
+        raise RuntimeError(f'The conditional additive model is not independently estimable with residual degrees of freedom (rank {base_rank}/{X_base.shape[1]}, {len(cond)} lineups). Test additional distinct lineups.')
+    base_fit = fit_binomial_direct(model_cond, X_base)
+    notices = []
+    full_pair_fit = full_triple_fit = None
+    if args.pair_synergy:
+        full_pair_fit, notice = fit_supported_layer(model_cond, X_pair_full, X_base,
+            lambda: fit_full_model(model_cond, model_heroes, X_pair_full, pairs), 'Pair')
+        if notice: notices.append(notice)
+    if args.triple_synergy:
+        if full_pair_fit is None:
+            notices.append('Triple synergy unavailable because the pair model is unavailable. Continuing with the additive model.')
+        else:
+            full_triple_fit, notice = fit_supported_layer(model_cond, X_triple_full, X_pair_full,
+                lambda: fit_full_triple_model(model_cond, model_heroes, X_triple_full, pairs, triples), 'Triple')
+            if notice: notices.append(notice)
+    heroes_tbl = hero_effect_table(base_fit, model_heroes, others, reference, duplicate_terms)
+    heroes_tbl['copy'] += heroes_tbl['hero'].map(fixed).fillna(0).astype(int)
+    heroes_tbl['term'] = heroes_tbl['hero'] + ' #' + heroes_tbl['copy'].astype(str)
+    pair_tbl = synergy_effect_table(full_pair_fit, pairs) if full_pair_fit is not None else empty_synergy_table('pair')
+    triple_tbl = triple_effect_table(full_triple_fit, triples) if full_triple_fit is not None else empty_synergy_table('triple')
+    for table, layer, keys in [(pair_tbl, 'pair', ['hero_a', 'hero_b']), (triple_tbl, 'triple', ['hero_a', 'hero_b', 'hero_c'])]:
+        if not table.empty:
+            table[layer] = table.apply(lambda row: ' + '.join(str(row[k]) + (' (additional copy)' if row[k] in fixed else '') for k in keys), axis=1)
+    (args.out / 'analysis_notices.json').write_text(json.dumps({'fixed_copies': fixed, 'notes': notices}, indent=2), encoding='utf-8')
+    if notices:
+        print('KINGSHOT_ANALYSIS_NOTICE:' + json.dumps('\n\n'.join(notices)), flush=True)
 
     pair_select_mask = significance_mask(pair_tbl, args.pair_selection_method, args.pair_synergy_threshold)
     triple_select_mask = significance_mask(triple_tbl, args.triple_selection_method, args.triple_synergy_threshold)
@@ -2621,7 +2753,7 @@ def main():
             X_base, X_triple_full, selected_pairs, selected_triples
         )
         selected_fit = fit_full_triple_model(
-            cond, heroes, X_model, hierarchy_pairs, selected_triples
+            model_cond, model_heroes, X_model, hierarchy_pairs, selected_triples
         )
         model_name = (
             f"additive + {len(hierarchy_pairs)} pair synergies + "
@@ -2629,7 +2761,7 @@ def main():
         )
     elif selected_pairs:
         X_model = build_selected_pair_design(X_base, X_pair_full, selected_pairs)
-        selected_fit = fit_full_model(cond, heroes, X_model, selected_pairs)
+        selected_fit = fit_full_model(model_cond, model_heroes, X_model, selected_pairs)
         model_name = f"additive + {len(selected_pairs)} pair synergies"
     else:
         X_model = X_base
@@ -2639,14 +2771,10 @@ def main():
     included_pair_set = set(hierarchy_pairs if args.pair_synergy else [])
     included_triple_set = set(selected_triples)
     pair_tbl["significant_by_selection_rule"] = pair_select_mask.to_numpy()
-    pair_tbl["included_in_prediction_model"] = pair_tbl.apply(
-        lambda r: tuple(sorted((r["hero_a"], r["hero_b"]))) in included_pair_set, axis=1
-    )
+    pair_tbl["included_in_prediction_model"] = [tuple(sorted((r.hero_a, r.hero_b))) in included_pair_set for r in pair_tbl.itertuples()]
     pair_tbl["selected_for_reduced_model"] = pair_tbl["included_in_prediction_model"]
     triple_tbl["significant_by_selection_rule"] = triple_select_mask.to_numpy()
-    triple_tbl["included_in_prediction_model"] = triple_tbl.apply(
-        lambda r: tuple(sorted((r["hero_a"], r["hero_b"], r["hero_c"]))) in included_triple_set, axis=1
-    )
+    triple_tbl["included_in_prediction_model"] = [tuple(sorted((r.hero_a, r.hero_b, r.hero_c))) in included_triple_set for r in triple_tbl.itertuples()]
     triple_tbl["selected_for_reduced_model"] = triple_tbl["included_in_prediction_model"]
 
     settings_tag = _settings_tag(
@@ -2660,31 +2788,37 @@ def main():
 
     ranked, top, avg_ci = plot_prediction(
         cond, heroes, X_model, selected_fit, args.out, args.top_n,
-        prediction_filename, model_name, plot_context_lines, args.trials_per_row,
+        prediction_filename, model_name, plot_context_lines, args.trials_per_row, chosen_side,
     )
-    plot_heroes(heroes_tbl, args.out, args.max_copy_plot)
+    plot_heroes(heroes_tbl, args.out, args.max_copy_plot, effect_plot_context)
     pair_plot_written = False
     triple_plot_written = False
-    if args.pair_synergy:
+    if full_pair_fit is not None:
         pair_plot_written = plot_synergies(
             pair_tbl, full_pair_fit, args.out, args.pair_selection_method,
-            args.pair_synergy_threshold, pair_plot_filename,
+            args.pair_synergy_threshold, pair_plot_filename, effect_plot_context,
         )
-    if args.triple_synergy:
+    if full_triple_fit is not None:
         triple_plot_written = plot_triple_synergies(
             triple_tbl, args.out, args.triple_selection_method, args.triple_synergy_threshold,
-            triple_plot_filename,
+            triple_plot_filename, effect_plot_context,
         )
+
+    # Remove only the current invocation's stale plots when reusing an output
+    # folder; an unavailable layer must not leave a misleading previous plot.
+    for filename, written in ((pair_plot_filename, pair_plot_written), (triple_plot_filename, triple_plot_written)):
+        if not written:
+            (args.out / filename).unlink(missing_ok=True)
 
     ranked.to_csv(args.out / "ranked_lineup_predictions.csv", index=False)
     top.to_csv(args.out / "top_model_predicted_lineups.csv", index=False)
     heroes_tbl.to_csv(args.out / "hero_incremental_contributions.csv", index=False)
     pair_tbl.to_csv(args.out / "all_pair_synergies.csv", index=False)
     triple_tbl.to_csv(args.out / "all_triple_synergies.csv", index=False)
-    pair_tbl.loc[pair_tbl["included_in_prediction_model"]].to_csv(
+    pair_tbl.loc[pair_tbl["included_in_prediction_model"].astype(bool)].to_csv(
         args.out / "selected_pair_synergies.csv", index=False
     )
-    triple_tbl.loc[triple_tbl["included_in_prediction_model"]].to_csv(
+    triple_tbl.loc[triple_tbl["included_in_prediction_model"].astype(bool)].to_csv(
         args.out / "selected_triple_synergies.csv", index=False
     )
 
@@ -2709,17 +2843,19 @@ def main():
     inference_cmp = pd.DataFrame([
         {
             "model": "full pair inference model",
+            "available": full_pair_fit is not None,
             "n_parameters_columns": int(X_pair_full.shape[1]),
             "rank": int(np.linalg.matrix_rank(np.asarray(X_pair_full, dtype=float))),
             **fit_metrics(cond, full_pair_fit),
-            "constrained": full_pair_fit.constrained,
+            "constrained": getattr(full_pair_fit, "constrained", False),
         },
         {
             "model": "full hierarchical pair + triple inference model",
+            "available": full_triple_fit is not None,
             "n_parameters_columns": int(X_triple_full.shape[1]),
             "rank": int(np.linalg.matrix_rank(np.asarray(X_triple_full, dtype=float))),
             **fit_metrics(cond, full_triple_fit),
-            "constrained": full_triple_fit.constrained,
+            "constrained": getattr(full_triple_fit, "constrained", False),
         },
     ])
     inference_cmp.to_csv(args.out / "inference_model_comparison.csv", index=False)
@@ -2797,6 +2933,11 @@ Replication / simulation depth:
 
 MODEL
 -----
+{fixed_note}
+
+Analysis notices:
+{chr(10).join(notices) if notices else "None"}
+
 Hero-contribution plot:
 - additive hero effects
 - nonlinear duplicate adjustments
@@ -2805,11 +2946,13 @@ Hero-contribution plot:
 Interaction inference models (used to estimate p-values):
 - full pair model: all {len(pairs)} pair interactions
 - full pair + triple inference model: all {len(pairs)} pair interactions + all {len(triples)} triple interactions
-- full pair model constrained: {full_pair_fit.constrained}
-- full pair + triple model constrained: {full_triple_fit.constrained}
-- triple constraint convention: {full_triple_fit.constraint_description}
+- full pair model constrained: {getattr(full_pair_fit, "constrained", False)}
+- full pair + triple model constrained: {getattr(full_triple_fit, "constrained", False)}
+- pair constraint convention: {getattr(full_pair_fit, 'constraint_description', 'unavailable or disabled')}
+- triple constraint convention: {getattr(full_triple_fit, 'constraint_description', 'unavailable or disabled')}
 
 Selected prediction model:
+- constraint convention: {selected_fit.constraint_description}
 - pair synergy enabled = {args.pair_synergy}
 - triple synergy enabled = {args.triple_synergy}
 - pair selection method = {args.pair_selection_method} ({"all estimable interactions" if args.pair_selection_method == "all" else ("raw/unadjusted p-value" if args.pair_selection_method == "raw" else "multiplicity-adjusted p-value")})

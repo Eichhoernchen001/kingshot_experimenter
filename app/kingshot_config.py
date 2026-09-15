@@ -46,6 +46,7 @@ def _special(*, maxed: bool = False) -> dict[str, Any]:
 def _profile(player_file: str, *, configured: bool, maxed: bool) -> dict[str, Any]:
     return {
         "player_file": player_file,
+        "name": "",
         "base_stats": _zero_stats(),
         "special_bonuses": _special(maxed=maxed),
         "hero_progression": {
@@ -707,5 +708,12 @@ def apply_config_to_globals(target: dict[str, Any], section: str) -> dict[str, A
             slots=side_cfg["manual_slots"]
             for i in range(4): target[f"joiner{i+1}_{prefix}"]=list(slots[i])
     else: raise ValueError(f"Unknown config section: {section}")
+    from kingshot_run_history import configured_result_folder
+    folder = configured_result_folder(script_folder / 'results', cfg, section)
+    csv_name = 'kingshot_winrates.csv' if section == 'joiner' else 'kingshot_lead_troop_winrates.csv'
+    target.update(EXPERIMENT_FOLDER=folder, OUTPUT_CSV=folder / csv_name,
+                  SETTINGS_TXT=folder / 'experiment_settings.txt',
+                  FIRST_ATTACKER_JSON=folder / 'attacker_data.json',
+                  FIRST_DEFENDER_JSON=folder / 'defender_data.json')
     target["ACTIVE_KINGSHOT_CONFIG"]=cfg
     return cfg

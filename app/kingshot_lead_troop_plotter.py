@@ -151,6 +151,19 @@ def _perspective_fields() -> dict[str, str]:
     }
 
 
+def player_matchup_title(folder: Path) -> str:
+    """Use saved run identities; keep the copied plotter standalone."""
+    names = {}
+    settings = folder / 'kingshot_lead_troop_winrates_experiment_settings.json'
+    snapshot = folder / 'run_configuration.json'
+    if settings.is_file():
+        names = json.loads(settings.read_text(encoding='utf-8-sig')).get('player_names', {})
+    if not names and snapshot.is_file():
+        profiles = json.loads(snapshot.read_text(encoding='utf-8-sig')).get('configuration', {}).get('profiles', {})
+        names = {side: profiles.get(letter, {}).get('name', '') for side, letter in [('attacker', 'A'), ('defender', 'B')]}
+    return f"{names.get('attacker') or 'Attacker'} (attacker) vs {names.get('defender') or 'Defender'} (defender)"
+
+
 def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int]:
     output_folder.mkdir(parents=True, exist_ok=True)
     df = _add_split_labels(df)
@@ -252,7 +265,7 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
         ax.set_xticks(x_centers)
         ax.set_xticklabels(x_order, rotation=18, ha="right")
         ax.set_title(
-            f"{fields['fixed_label']}: {fixed_troops} ({fixed_name})",
+            player_matchup_title(output_folder) + '\n' + f"{fields['fixed_label']}: {fixed_troops} ({fixed_name})",
             fontsize=14, pad=14,
         )
         ax.grid(axis="y", alpha=0.20, linewidth=0.7, zorder=0)
@@ -295,10 +308,15 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
 
 
 def main() -> None:
-    global PLOT_BY
+    global PLOT_BY, EXPERIMENT_FOLDER, INPUT_CSV, OUTPUT_FOLDER
     parser = argparse.ArgumentParser(description="Plot Kingshot lead/troop experiment results.")
     parser.add_argument("--plot-by", choices=("attacker", "defender"), default=None)
+    parser.add_argument('--experiment-folder', type=Path, default=None)
     args = parser.parse_args()
+    if args.experiment_folder is not None:
+        EXPERIMENT_FOLDER = args.experiment_folder
+        INPUT_CSV = EXPERIMENT_FOLDER / CSV_FILENAME
+        OUTPUT_FOLDER = EXPERIMENT_FOLDER
     if args.plot_by is not None:
         PLOT_BY = args.plot_by
 

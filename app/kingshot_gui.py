@@ -20,6 +20,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import Any, Callable
 
 from kingshot_paths import APP_DIR, ROOT_DIR, JSON_DIR, RESULTS_DIR, LAST_RUN_STATS_FILE
+from kingshot_run_history import FOLDERS, result_folder, previous_runs, import_run, configured_result_folder, DEFAULT_FOLDER_LABEL
 from kingshot_config import (
     CONFIG_FILENAME,
     default_config,
@@ -920,6 +921,10 @@ class ProfileStatsFrame(ttk.LabelFrame):
     def __init__(self,parent:tk.Widget,app:"KingshotApp",letter:str,role_label:str,on_change:Callable[[],None]):
         super().__init__(parent,text=f"Player {letter} — {role_label}"); self.app=app; self.letter=letter; self.profile={}; self.leads={}; self.player_file=tk.StringVar(); self.on_change=on_change
         FileRow(self,"Player JSON",self.player_file,[("JSON","*.json"),("All files","*.*")]).pack(fill="x",padx=7,pady=7)
+        self.player_name = tk.StringVar()
+        name_row = ttk.Frame(self); name_row.pack(fill='x', padx=7, pady=(0, 7))
+        ttk.Label(name_row, text='Player name', width=14).pack(side='left')
+        ttk.Entry(name_row, textvariable=self.player_name).pack(side='left', fill='x', expand=True)
         options=ttk.LabelFrame(self,text="Use bonuses")
         options.pack(fill="x",padx=7,pady=(0,6))
         self.option_vars:dict[str,tk.BooleanVar]={}
@@ -933,12 +938,14 @@ class ProfileStatsFrame(ttk.LabelFrame):
         for key,label,width in (("troop","Troop",105),("attack","Attack",85),("defense","Defense",85),("lethality","Lethality",85),("health","Health",85)):
             self.tree.heading(key,text=label); self.tree.column(key,width=width,anchor="w" if key=="troop" else "center")
         self.tree.pack(fill="x",padx=7,pady=(0,7))
-        ttk.Label(self,text="Shown totals: Base + enabled Stars + passive Widget stats + Gear, then enabled Pet/City Special Bonuses (including opponent enemy-down effects). Active lead-widget skill buffs are controlled per formation on tabs 2 and 3 and are not included here.",foreground="#555",wraplength=540).pack(anchor="w",padx=7,pady=(0,7))
+        ttk.Label(self,text="Shown totals: Base + enabled Stars + passive Widget stats + Gear, then enabled Pet/City Special Bonuses (including opponent enemy-down effects). Active lead-widget skill buffs are controlled per formation on tabs 2 and 3 and are not included here.",foreground="#555",wraplength=440).pack(anchor="w",padx=7,pady=(0,7))
 
     def load(self,profile:dict[str,Any],leads:dict[str,str])->None:
         self.profile=copy.deepcopy(profile); self.player_file.set(profile["player_file"]); self.leads=copy.deepcopy(leads); self._sync_option_vars()
+        self.player_name.set(profile.get('name', '') or ('Attacker' if self.letter == 'A' else 'Defender'))
 
     def dump(self)->dict[str,Any]:
+        self.profile['name'] = self.player_name.get().strip()
         self.profile["player_file"]=self.player_file.get().strip(); return copy.deepcopy(self.profile)
 
     def _sync_option_vars(self)->None:
@@ -1009,18 +1016,57 @@ class ProfileStatsFrame(ttk.LabelFrame):
     def edit_special(self)->None:self._sync_file(); SpecialStatsDialog(self,self.profile,self._saved)
 
 
+def _swap_button(parent: tk.Widget, command: Callable[[], None]) -> ttk.Button:
+    ttk.Style(parent).configure('Swap.TButton', font=('TkDefaultFont', 9, 'bold'), anchor='center')
+    button = ttk.Button(parent, text='Swap\nattacker ↔ defender', command=command,
+                        width=19, padding=(8, 12), style='Swap.TButton')
+    button.grid(row=0, column=1, padx=8, pady=8)
+    return button
+
+
 class ProfilesTab(ScrollableFrame):
     def __init__(self,app:"KingshotApp",parent:tk.Widget):
         super().__init__(parent); self.app=app; root=self.inner
         topbar=ttk.Frame(root); topbar.pack(fill="x",padx=14,pady=(10,0))
         ttk.Button(topbar,text="Use last saved settings",command=lambda:self.app.reload_saved_tab("profiles")).pack(side="right")
-        players=ttk.Frame(root); players.pack(fill="x",padx=12,pady=(6,6)); self.player_a=ProfileStatsFrame(players,app,"A","attacker",self.refresh_displays); self.player_b=ProfileStatsFrame(players,app,"B","defender",self.refresh_displays)
-        self.player_a.grid(row=0,column=0,sticky="nsew",padx=(0,6)); self.player_b.grid(row=0,column=1,sticky="nsew",padx=(6,0)); players.columnconfigure(0,weight=1); players.columnconfigure(1,weight=1)
-        shared=ttk.LabelFrame(root,text="Shared battle setup — used by both experiments"); shared.pack(fill="x",padx=12,pady=(6,12)); sidebox=ttk.Frame(shared); sidebox.pack(fill="x",padx=6,pady=6)
-        self.atk_setup=SideTroopFrame(sidebox,"Player A / attacker",include_split=False); self.def_setup=SideTroopFrame(sidebox,"Player B / defender",include_split=False); self.atk_setup.grid(row=0,column=0,sticky="nsew",padx=(0,6)); self.def_setup.grid(row=0,column=1,sticky="nsew",padx=(6,0)); sidebox.columnconfigure(0,weight=1); sidebox.columnconfigure(1,weight=1)
+        imports = ttk.Frame(self.inner)
+        imports.pack(fill='x', padx=14, pady=6)
+        ttk.Label(imports, text='Import from previous...').pack(side='left', padx=(0, 8))
+        for section, label in [('lead_troop', 'Lead + Troops'), ('joiner', 'Joiner')]:
+            ttk.Button(imports, text=label, command=lambda s=section: app.import_previous(s)).pack(side='left', padx=(0, 8))
+        players = ttk.Frame(root); players.pack(fill='x', padx=12, pady=(6, 12))
+        left = ttk.Frame(players); left.grid(row=0, column=0, sticky='nsew')
+        right = ttk.Frame(players); right.grid(row=0, column=2, sticky='nsew')
+        players.columnconfigure(0, weight=1, uniform='players')
+        players.columnconfigure(2, weight=1, uniform='players')
+        self.player_a = ProfileStatsFrame(left, app, 'A', 'attacker', self.refresh_displays)
+        self.player_b = ProfileStatsFrame(right, app, 'B', 'defender', self.refresh_displays)
+        self.player_a.pack(fill='x'); self.player_b.pack(fill='x')
+        self.atk_setup = SideTroopFrame(left, 'Shared battle setup — attacker', include_split=False)
+        self.def_setup = SideTroopFrame(right, 'Shared battle setup — defender', include_split=False)
+        self.atk_setup.pack(fill='x', pady=(10, 0)); self.def_setup.pack(fill='x', pady=(10, 0))
+        _swap_button(players, self.swap_players)
 
     def current_profiles(self)->dict[str,dict[str,Any]]:
         return {"A":self.player_a.dump(),"B":self.player_b.dump()}
+
+    def swap_players(self)->None:
+        # Read both sides before changing either, including unsaved controls.
+        try:
+            profiles = self.current_profiles()
+            attacker_setup = self.atk_setup.dump_common()
+            defender_setup = self.def_setup.dump_common()
+        except (ValueError, TypeError) as exc:
+            messagebox.showerror('Could not swap players', str(exc), parent=self)
+            return
+        # Leads belong to the experiment tabs; retain each side's lead context.
+        attacker_leads = copy.deepcopy(self.player_a.leads)
+        defender_leads = copy.deepcopy(self.player_b.leads)
+        self.player_a.load(profiles['B'], attacker_leads)
+        self.player_b.load(profiles['A'], defender_leads)
+        self.atk_setup.load(defender_setup)
+        self.def_setup.load(attacker_setup)
+        self.refresh_displays()
 
     def refresh_displays(self)->None:
         if not (self.player_a.profile and self.player_b.profile):
@@ -1283,17 +1329,17 @@ class JoinerTab(ScrollableFrame):
         ttk.Label(root,text="Total troops, troop Tier/TG, stats and progression are shared on tab 1. Run settings for both experiments are on tab 4.",foreground="#555",wraplength=1000).pack(fill="x",padx=14,pady=(6,4))
         sides=ttk.Frame(root); sides.pack(fill="x",padx=12,pady=6)
         self.atk=JoinerFixedSetupFrame(sides,"Attacker fixed setup",app,"attacker",self.refresh_final_stats); self.atk.grid(row=0,column=0,sticky="nsew",padx=(0,6))
-        self.deff=JoinerFixedSetupFrame(sides,"Defender fixed setup",app,"defender",self.refresh_final_stats); self.deff.grid(row=0,column=1,sticky="nsew",padx=(6,0)); sides.columnconfigure(0,weight=1); sides.columnconfigure(1,weight=1)
-        ttk.Button(root,text="Swap attacker ↔ defender fixed setups",command=self.swap_fixed).pack(pady=(0,3))
+        self.deff=JoinerFixedSetupFrame(sides,"Defender fixed setup",app,"defender",self.refresh_final_stats); self.deff.grid(row=0,column=2,sticky="nsew",padx=(6,0)); sides.columnconfigure(0,weight=1); sides.columnconfigure(2,weight=1)
+        _swap_button(sides, self.swap_fixed)
         pools=ttk.Frame(root); pools.pack(fill="x",padx=12,pady=6)
         self.atk_pool=JoinerPoolSummary(pools,app,"Attacker"); self.atk_pool.grid(row=0,column=0,sticky="nsew",padx=(0,6))
-        self.def_pool=JoinerPoolSummary(pools,app,"Defender"); self.def_pool.grid(row=0,column=1,sticky="nsew",padx=(6,0))
-        pools.columnconfigure(0,weight=1); pools.columnconfigure(1,weight=1)
-        ttk.Button(root,text="Swap attacker ↔ defender joiner pools",command=self.swap_pools).pack(pady=(0,3))
+        self.def_pool=JoinerPoolSummary(pools,app,"Defender"); self.def_pool.grid(row=0,column=2,sticky="nsew",padx=(6,0))
+        pools.columnconfigure(0,weight=1); pools.columnconfigure(2,weight=1)
+        _swap_button(pools, self.swap_pools)
         manual=ttk.Frame(root); manual.pack(fill="x",padx=12,pady=(6,6))
         self.atk_slots=ManualSlotsFrame(manual,"Attacker manual slots",app); self.atk_slots.grid(row=0,column=0,sticky="nsew",padx=(0,6))
-        self.def_slots=ManualSlotsFrame(manual,"Defender manual slots",app); self.def_slots.grid(row=0,column=1,sticky="nsew",padx=(6,0)); manual.columnconfigure(0,weight=1); manual.columnconfigure(1,weight=1)
-        ttk.Button(root,text="Swap attacker ↔ defender manual slots",command=self.swap_manual).pack(pady=(0,6))
+        self.def_slots=ManualSlotsFrame(manual,"Defender manual slots",app); self.def_slots.grid(row=0,column=2,sticky="nsew",padx=(6,0)); manual.columnconfigure(0,weight=1); manual.columnconfigure(2,weight=1)
+        _swap_button(manual, self.swap_manual)
         self.final_stats=FinalStatsFrame(
             root, app, self._configured_stats,
             note="Configured view uses the fixed attacker/defender leads above. Enabled compatible widget skills are included; joiner pool/manual-slot choices do not change these troop-stat totals.",
@@ -1327,6 +1373,13 @@ class RunTab(ttk.Frame):
     def __init__(self, app: "KingshotApp", parent: tk.Widget):
         super().__init__(parent); self.app=app
         self.run=RunSettingsFrame(self,"Run settings — applies to both experiments"); self.run.pack(fill="x",padx=12,pady=(12,6))
+        folders = ttk.LabelFrame(self, text='Results folder names')
+        folders.pack(fill='x', padx=12, pady=6)
+        self.result_names = {s: tk.StringVar(value='') for s in FOLDERS}
+        for row, (section, label) in enumerate([('lead_troop', 'Lead + Troops'), ('joiner', 'Joiner')]):
+            ttk.Label(folders, text=label, width=16).grid(row=row, column=0, padx=8, pady=4, sticky='w')
+            ttk.Entry(folders, textvariable=self.result_names[section], width=30).grid(row=row, column=1, padx=4, pady=4)
+            ttk.Label(folders, text='Blank = automatic player names' + (' + troop ratios' if section == 'joiner' else '')).grid(row=row, column=2, padx=8, sticky='w')
         actions=ttk.LabelFrame(self,text="Workflow"); actions.pack(fill="x",padx=12,pady=6)
         self.plot_by=tk.StringVar(); self.analysis_side=tk.StringVar(); self.top_n=tk.StringVar()
         self.pair_selection=tk.StringVar(); self.pair_threshold=tk.StringVar()
@@ -1338,7 +1391,7 @@ class RunTab(ttk.Frame):
         ttk.Button(actions,text="Preview",command=lambda:app.run_script("kingshot_lead_troop_experiment.py",["--preview"])).grid(row=0,column=1,padx=4,pady=8)
         ttk.Button(actions,text="Run experiment",command=lambda:app.run_script("kingshot_lead_troop_experiment.py")).grid(row=0,column=2,padx=4,pady=8)
         ttk.Button(actions,text="Create plots",command=self.plot_results).grid(row=0,column=3,padx=4,pady=8)
-        ttk.Button(actions,text="Open folder",command=lambda:app.open_folder(RESULTS_DIR/"lead_troop_experiment")).grid(row=0,column=4,padx=4,pady=8)
+        ttk.Button(actions,text="Open folder",command=lambda:self.open_results('lead_troop')).grid(row=0,column=4,padx=4,pady=8)
         ttk.Label(actions,text="Plot by").grid(row=0,column=5,padx=(18,3))
         ttk.Combobox(actions,textvariable=self.plot_by,values=["defender","attacker"],state="readonly",width=10).grid(row=0,column=6,padx=(0,8))
 
@@ -1346,7 +1399,7 @@ class RunTab(ttk.Frame):
         ttk.Button(actions,text="Preview",command=lambda:app.run_script("kingshot_joiner_experiment.py",["--preview"])).grid(row=1,column=1,padx=4,pady=8)
         ttk.Button(actions,text="Run experiment",command=lambda:app.run_script("kingshot_joiner_experiment.py")).grid(row=1,column=2,padx=4,pady=8)
         ttk.Button(actions,text="Create model and plots",command=self.analyze).grid(row=1,column=3,padx=4,pady=8)
-        ttk.Button(actions,text="Open folder",command=lambda:app.open_folder(RESULTS_DIR/"joiner_experiment")).grid(row=1,column=4,padx=4,pady=8)
+        ttk.Button(actions,text="Open folder",command=lambda:self.open_results('joiner')).grid(row=1,column=4,padx=4,pady=8)
 
         modelopts=ttk.Frame(actions); modelopts.grid(row=2,column=1,columnspan=6,sticky="w",padx=4,pady=(0,4))
         ttk.Label(modelopts,text="Model side").grid(row=0,column=0,sticky="w",padx=(4,3),pady=2)
@@ -1382,6 +1435,20 @@ class RunTab(ttk.Frame):
         reverse={label:key for key,label in self.selection_labels.items()}
         return reverse.get(var.get(), "raw")
 
+    def output_folder(self, section):
+        cfg = copy.deepcopy(self.app.config_data)
+        cfg['profiles'] = self.app.profiles_tab.current_profiles()
+        if section == 'joiner':
+            self.app.joiner_tab.commit(cfg)
+        cfg['result_names'] = {s: v.get() for s, v in self.result_names.items()}
+        return configured_result_folder(RESULTS_DIR, cfg, section)
+
+    def open_results(self, section):
+        try:
+            self.app.open_folder(self.output_folder(section))
+        except ValueError as exc:
+            messagebox.showerror('Invalid folder name', str(exc), parent=self)
+
     def _sync_synergy_controls(self)->None:
         pair_on=bool(self.pair_synergy.get())
         self.pair_method_box.configure(state="readonly" if pair_on else "disabled")
@@ -1408,17 +1475,28 @@ class RunTab(ttk.Frame):
 
     def commit(self,cfg:dict[str,Any])->None:
         pair_method=self._selection_code(self.pair_selection); triple_method=self._selection_code(self.triple_selection)
+        for section in FOLDERS:
+            self.output_folder(section)
+        cfg['result_names'] = {s: v.get().strip() for s, v in self.result_names.items()}
         pair_threshold=0.05 if pair_method=="all" else _parse_float(self.pair_threshold.get(),"Pair synergy p threshold")
         triple_threshold=0.05 if triple_method=="all" else _parse_float(self.triple_threshold.get(),"Triple synergy p threshold")
         cfg["run"]=self.run.dump(); cfg["plotter"]["plot_by"]=self.plot_by.get(); cfg["analysis"]={"side":self.analysis_side.get(),"selection_method":pair_method,"synergy_threshold":pair_threshold,"pair_selection_method":pair_method,"pair_synergy_threshold":pair_threshold,"triple_selection_method":triple_method,"triple_synergy_threshold":triple_threshold,"pair_synergy":bool(self.pair_synergy.get()),"triple_synergy":bool(self.triple_synergy.get()),"top_n":_parse_int(self.top_n.get(),"Label top joiner combinations")}
 
     def plot_results(self)->None:
-        self.app.run_script("kingshot_lead_troop_plotter.py",["--plot-by",self.plot_by.get()])
+        try:
+            folder = self.output_folder('lead_troop')
+        except ValueError as exc:
+            messagebox.showerror('Invalid folder name', str(exc), parent=self); return
+        self.app.run_script("kingshot_lead_troop_plotter.py",["--plot-by",self.plot_by.get(), '--experiment-folder', str(folder)])
 
     def analyze(self)->None:
+        try:
+            folder = self.output_folder('joiner')
+        except ValueError as exc:
+            messagebox.showerror('Invalid folder name', str(exc), parent=self); return
         pair_method=self._selection_code(self.pair_selection); triple_method=self._selection_code(self.triple_selection)
         pair_threshold="0.05" if pair_method=="all" else self.pair_threshold.get(); triple_threshold="0.05" if triple_method=="all" else self.triple_threshold.get()
-        csv=RESULTS_DIR/"joiner_experiment"/"kingshot_winrates.csv"; args=[str(csv),"--side",self.analysis_side.get(),"--pair-selection-method",pair_method,"--pair-synergy-threshold",pair_threshold,"--triple-selection-method",triple_method,"--triple-synergy-threshold",triple_threshold,"--top-n",self.top_n.get(),"--existing-output","overwrite",("--pair-synergy" if self.pair_synergy.get() else "--no-pair-synergy"),("--triple-synergy" if self.triple_synergy.get() else "--no-triple-synergy")]; self.app.run_script("kingshot_full_model_analysis.py",args)
+        csv=folder/"kingshot_winrates.csv"; args=[str(csv),"--side",self.analysis_side.get(),"--pair-selection-method",pair_method,"--pair-synergy-threshold",pair_threshold,"--triple-selection-method",triple_method,"--triple-synergy-threshold",triple_threshold,"--top-n",self.top_n.get(),"--existing-output","overwrite",("--pair-synergy" if self.pair_synergy.get() else "--no-pair-synergy"),("--triple-synergy" if self.triple_synergy.get() else "--no-triple-synergy")]; self.app.run_script("kingshot_full_model_analysis.py",args)
 
     def append_log(self,text:str)->None:
         self.log.configure(state="normal"); self.log.insert("end",text); self.log.see("end"); self.log.configure(state="disabled")
@@ -1429,7 +1507,7 @@ class KingshotApp(tk.Tk):
         self.signature = _add_window_signature(self)
         self.title("Kingshot Experiment Manager")
         self.geometry("1180x820")
-        self.minsize(960, 680)
+        self.minsize(1180, 680)
         self.process: subprocess.Popen[str] | None = None
         self.output_queue: queue.Queue[str] = queue.Queue()
         try:
@@ -1469,6 +1547,58 @@ class KingshotApp(tk.Tk):
         self.load_into_ui()
         self.after(100, self._drain_output)
         self.protocol("WM_DELETE_WINDOW", self._close)
+
+    def import_previous(self, section):
+        if self.process and self.process.poll() is None:
+            messagebox.showinfo('Experiment running', 'Wait for the current task to finish before importing settings.', parent=self)
+            return
+        try:
+            folders = previous_runs(RESULTS_DIR, section)
+        except OSError as exc:
+            messagebox.showerror('Could not list previous runs', str(exc), parent=self); return
+        if not folders:
+            messagebox.showinfo('No previous runs', f'No saved settings found in\n{RESULTS_DIR / FOLDERS[section]}', parent=self)
+            return
+        dialog = tk.Toplevel(self)
+        dialog.title('Import from previous — ' + ('Joiner' if section == 'joiner' else 'Lead + Troops'))
+        dialog.transient(self); dialog.geometry('650x380')
+        ttk.Label(dialog, text=f'Saved runs in {RESULTS_DIR / FOLDERS[section]}', wraplength=610).pack(anchor='w', padx=12, pady=12)
+        frame = ttk.Frame(dialog); frame.pack(fill='both', expand=True, padx=12)
+        listing = tk.Listbox(frame, exportselection=False)
+        scroll = ttk.Scrollbar(frame, orient='vertical', command=listing.yview)
+        listing.configure(yscrollcommand=scroll.set)
+        listing.pack(side='left', fill='both', expand=True); scroll.pack(side='right', fill='y')
+        base = RESULTS_DIR / FOLDERS[section]
+        for folder in folders:
+            listing.insert('end', '(Default folder)' if folder == base else folder.name)
+        listing.selection_set(0)
+        def accept(_event=None):
+            chosen = listing.curselection()
+            if not chosen:
+                return
+            folder = folders[chosen[0]]
+            old = None
+            try:
+                old = copy.deepcopy(self.commit_ui())
+                cfg, notes = import_run(folder, section, old, ROOT)
+                self.config_data = cfg
+                self.load_into_ui()
+                self.run_tab.result_names[section].set(DEFAULT_FOLDER_LABEL if folder == base else folder.name)
+            except Exception as exc:
+                if old is not None:
+                    self.config_data = old
+                    self.load_into_ui()
+                messagebox.showerror('Could not import settings', str(exc), parent=dialog)
+                return
+            dialog.destroy()
+            self.status.set(f'Imported {FOLDERS[section]} settings from {folder}')
+            if notes:
+                messagebox.showwarning('Previous settings imported — review needed', '\n\n'.join(notes), parent=self)
+        buttons = ttk.Frame(dialog); buttons.pack(fill='x', padx=12, pady=12)
+        ttk.Button(buttons, text='Cancel', command=dialog.destroy).pack(side='right')
+        ttk.Button(buttons, text='Import', command=accept).pack(side='right', padx=6)
+        listing.bind('<Double-1>', accept)
+        dialog.grab_set(); listing.focus_set()
 
     def read_last_run_stats(self, *, show_error: bool = False) -> dict[str, Any] | None:
         path = LAST_RUN_STATS_FILE
@@ -1570,7 +1700,15 @@ class KingshotApp(tk.Tk):
     def _drain_output(self) -> None:
         try:
             while True:
-                self.run_tab.append_log(self.output_queue.get_nowait())
+                line = self.output_queue.get_nowait()
+                self.run_tab.append_log(line)
+                if line.startswith('KINGSHOT_ANALYSIS_NOTICE:'):
+                    try:
+                        notice = json.loads(line.split(':', 1)[1])
+                    except (ValueError, TypeError):
+                        continue
+                    if isinstance(notice, str):
+                        messagebox.showwarning('Synergy analysis unavailable', notice, parent=self)
         except queue.Empty:
             pass
         self.after(100, self._drain_output)

@@ -249,6 +249,8 @@ def _augment_machine_settings(settings_path: Path) -> None:
     attacker_profile = _load_json(FIRST_ATTACKER_JSON)
     defender_profile = _load_json(FIRST_DEFENDER_JSON)
 
+    from kingshot_run_history import player_names
+    data['player_names'] = player_names(ACTIVE_KINGSHOT_CONFIG)
     data["profile_progression"] = {
         "hero_progression_lookup": str(HERO_PROGRESSION_LOOKUP),
         "attacker": {
@@ -1314,6 +1316,8 @@ async def run_experiment() -> None:
         effective_stats_include_heroes_def,
     )
     _augment_machine_settings(settings_path)
+    from kingshot_run_history import write_snapshot
+    write_snapshot(EXPERIMENT_FOLDER, ACTIVE_KINGSHOT_CONFIG, 'joiner', SCRIPT_FOLDER)
     readable_settings = _write_readable_settings(
         conditions,
         effective_stats_include_heroes_atk,
