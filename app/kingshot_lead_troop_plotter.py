@@ -20,6 +20,7 @@ from matplotlib.patches import Patch
 SCRIPT_FOLDER = Path(__file__).resolve().parent
 PACKAGE_ROOT = SCRIPT_FOLDER.parent if SCRIPT_FOLDER.name == "app" else SCRIPT_FOLDER
 PLOT_BY = "defender"  # default; kingshot_config.json / --plot-by can override
+WINRATE_SIDE = 'attacker'
 
 # Keep this script standalone when copied into a results folder. The app copy
 # and the results copy both find the top-level config without extra imports.
@@ -32,9 +33,11 @@ for _cfg_path in (
         try:
             _cfg = json.loads(_cfg_path.read_text(encoding="utf-8"))
             PLOT_BY = _cfg.get("plotter", {}).get("plot_by", PLOT_BY)
+            WINRATE_SIDE = _cfg.get('plotter', {}).get('winrate_side', 'defender' if PLOT_BY == 'attacker' else 'attacker')
         except Exception:
             pass
         break
+PLOT_BY = 'defender' if WINRATE_SIDE == 'attacker' else 'attacker'
 SHOW_50_PERCENT_REFERENCE = False
 SHOW_MEAN_LABELS = False
 FIGURE_WIDTH = 13.5
@@ -151,23 +154,110 @@ def _perspective_fields() -> dict[str, str]:
     }
 
 
-def player_matchup_title(folder: Path) -> str:
-    """Use saved run identities; keep the copied plotter standalone."""
-    names = {}
-    settings = folder / 'kingshot_lead_troop_winrates_experiment_settings.json'
+def _saved_design(folder):
     snapshot = folder / 'run_configuration.json'
+    if snapshot.is_file():
+        cfg = json.loads(snapshot.read_text(encoding='utf-8-sig')).get('configuration', {})
+        return cfg, cfg.get('lead_troop', {})
+    settings = folder / 'kingshot_lead_troop_winrates_experiment_settings.json'
     if settings.is_file():
-        names = json.loads(settings.read_text(encoding='utf-8-sig')).get('player_names', {})
-    if not names and snapshot.is_file():
-        profiles = json.loads(snapshot.read_text(encoding='utf-8-sig')).get('configuration', {}).get('profiles', {})
-        names = {side: profiles.get(letter, {}).get('name', '') for side, letter in [('attacker', 'A'), ('defender', 'B')]}
-    return f"{names.get('attacker') or 'Attacker'} (attacker) vs {names.get('defender') or 'Defender'} (defender)"
+        data = json.loads(settings.read_text(encoding='utf-8-sig'))
+        cfg = data.get('configuration', {})
+        return cfg, cfg.get('lead_troop', data.get('formation_settings', {}))
+    return {}, {}
+
+
+def saved_player_names(folder):
+    settings = folder / 'kingshot_lead_troop_winrates_experiment_settings.json'
+    names = json.loads(settings.read_text(encoding='utf-8-sig')).get('player_names', {}) if settings.is_file() else {}
+    cfg, design = _saved_design(folder)
+    assignment = design.get('assignment', {'attacker': 'A', 'defender': 'B'})
+    return {side: names.get(side) or cfg.get('profiles', {}).get(assignment[side], {}).get('name') or side.title()
+            for side in ('attacker', 'defender')}
+
+
+def player_matchup_title(folder: Path) -> str:
+    names = saved_player_names(folder)
+    return f"{names['attacker']} (attacker) vs {names['defender']} (defender)"
+
+
+def _formation_label(form):
+    return ' + '.join(str(v.get('name', '') if isinstance(v, dict) else v)
+                      for v in (form['leads'][r] for r in ('inf', 'cav', 'arch')))
+
+
+def _formation_order(observed, design, side):
+    saved = [_formation_label(f) for f in design.get(side, {}).get('formations', [])]
+    return list(dict.fromkeys([n for n in saved if n in observed] + list(observed)))
+
+
+def _sequence_styles(df, fields, design, side):
+    """A sequence has one global hatch; a split has a color within that sequence.
+
+    Local range IDs may restart for each hero squad. Full saved ranges keep styles
+    stable in partial results; CSV-only plots reconstruct them from observed rows.
+    """
+    formation, group, split = (fields[k] for k in ('x_formation', 'variant_range', 'variant_split'))
+    sequences = {}
+    for form in design.get(side, {}).get('formations', []):
+        name = _formation_label(form)
+        variants = form.get('troop_variants_pct', [])
+        groups = form.get('troop_variant_groups', [1] * len(variants))
+        for number, ratios in zip(groups, variants):
+            label = '/'.join(_fmt_pct(x) for x in ratios)
+            sequences.setdefault((name, int(number)), set()).add(label)
+    for name, number, label in df[[formation, group, split]].itertuples(index=False, name=None):
+        sequences.setdefault((name, int(number)), set()).add(label)
+    def split_key(label):
+        return tuple(float(x) for x in label.split('/'))
+    signatures = {key: tuple(sorted(values, key=split_key, reverse=True)) for key, values in sequences.items()}
+    # Stable under formation reordering; no dependency on hero names or local IDs.
+    unique = sorted(set(signatures.values()), key=lambda seq: tuple(split_key(x) for x in seq), reverse=True)
+    cmap = plt.get_cmap('tab10')
+    allocated = {}; pattern = 0
+    def hatch(index):
+        if index == 0: return ''
+        return HATCH_PATTERNS[1 + (index - 1) % (len(HATCH_PATTERNS) - 1)] * (1 + (index - 1) // (len(HATCH_PATTERNS) - 1))
+    for seq in unique:
+        for i, label in enumerate(seq):
+            allocated[seq, label] = (cmap(i % 10), hatch(pattern + i // 10))
+        pattern += max(1, (len(seq) + 9) // 10)
+    styles = {(name, number, label): allocated[seq, label]
+              for (name, number), seq in signatures.items() for label in seq}
+    return styles
+
+
+def _stored_winrate_side(df, path=None):
+    if 'winrate_side' in df.columns:
+        values=set(df['winrate_side'].dropna().astype(str).str.strip())
+        if len(values)!=1 or not values.issubset({'attacker','defender'}):
+            raise ValueError('CSV must contain one consistent attacker/defender winrate_side.')
+        return next(iter(values))
+    if path is not None:
+        settings=Path(path).with_name(Path(path).stem+'_experiment_settings.json')
+        if settings.is_file():
+            side=json.loads(settings.read_text(encoding='utf-8-sig')).get('winrate_side')
+            if side in ('attacker','defender'):return side
+    return None
 
 
 def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int]:
+    global PLOT_BY, WINRATE_SIDE
     output_folder.mkdir(parents=True, exist_ok=True)
+    stored=_stored_winrate_side(df, INPUT_CSV)
+    if stored is not None:WINRATE_SIDE=stored
+    else:
+        counts={side:len(df[[formation,*[f'{unit}_pct_{short}' for unit in ('infantry','cavalry','archers')]]].drop_duplicates())
+                for side,short,formation in [('attacker','atk','attack_formation'),('defender','def','defense_scenario')]}
+        if counts['attacker']==1 and counts['defender']>1:WINRATE_SIDE='defender'
+        elif counts['defender']==1 and counts['attacker']>1:WINRATE_SIDE='attacker'
+    if WINRATE_SIDE not in ('attacker', 'defender'):raise ValueError('Unknown win-rate side.')
+    PLOT_BY = 'defender' if WINRATE_SIDE == 'attacker' else 'attacker'
+    df = df.copy()
+    if stored is None and WINRATE_SIDE=='defender':df['winrate']=100.0-df['winrate']
     df = _add_split_labels(df)
     summary = _condition_summary(df)
+    summary['winrate_side'] = WINRATE_SIDE
     summary.to_csv(output_folder / "condition_summary.csv", index=False)
 
     fields = _perspective_fields()
@@ -177,16 +267,11 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
     variant_split = fields["variant_split"]
     variant_range = fields["variant_range"]
 
-    split_order = list(dict.fromkeys(zip(df[variant_range].astype(int), df[variant_split])))
-    cmap = plt.get_cmap("tab10")
-    color_positions: dict[int, int] = {}
-    split_colors = {}
-    split_hatches = {}
-    for group, split in split_order:
-        index = color_positions.get(group, 0)
-        split_colors[(group, split)] = cmap(index % 10)
-        split_hatches[(group, split)] = HATCH_PATTERNS[(group - 1) % len(HATCH_PATTERNS)]
-        color_positions[group] = index + 1
+    _, design = _saved_design(Path(INPUT_CSV).parent)
+    names = saved_player_names(Path(INPUT_CSV).parent)
+    split_styles = _sequence_styles(df, fields, design, WINRATE_SIDE)
+    style_order = list(dict.fromkeys(df[[x_formation, variant_range, variant_split]].itertuples(index=False, name=None)))
+    fields['legend_title'] = f"{names[WINRATE_SIDE]} ({WINRATE_SIDE}) troop split\nInf/Cav/Arch"
 
     plot_keys = list(dict.fromkeys(zip(df[fixed_formation], df[fixed_split])))
 
@@ -196,7 +281,7 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
         smask = (summary[fixed_formation] == fixed_name) & (summary[fixed_split] == fixed_troops)
         s = summary.loc[smask].copy()
 
-        x_order = list(dict.fromkeys(d[x_formation].tolist()))
+        x_order = _formation_order(list(dict.fromkeys(d[x_formation].tolist())), design, WINRATE_SIDE)
         x_centers = np.arange(len(x_order), dtype=float)
         variants_by_x = {
             x_name: list(dict.fromkeys(zip(
@@ -210,13 +295,15 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
         bar_width = group_width / max_variants
 
         fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, FIGURE_HEIGHT))
-        used_splits: set[tuple[int, str]] = set()
+        used_splits = set()
 
         for x_center, x_name in zip(x_centers, x_order):
             variants = variants_by_x[x_name]
             offsets = (np.arange(len(variants)) - (len(variants) - 1) / 2) * bar_width
             for offset, key in zip(offsets, variants):
                 group, split = key
+                style_key = (x_name, group, split)
+                color, hatch = split_styles[style_key]
                 row = s[(s[x_formation] == x_name) & (s[variant_split] == split) & (s[variant_range].astype(int) == group)]
                 if len(row) != 1:
                     raise ValueError(
@@ -229,7 +316,7 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
 
                 ax.bar(
                     xpos, mean, width=bar_width * 0.90,
-                    color=split_colors[key], hatch=split_hatches[key],
+                    color=color, hatch=hatch,
                     edgecolor="black", linewidth=0.6, zorder=2,
                 )
                 ax.errorbar(
@@ -254,31 +341,33 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
                         ha="center", va="bottom", fontsize=8.5,
                         fontweight="bold", zorder=7,
                     )
-                used_splits.add(key)
+                used_splits.add(style_key)
 
         if SHOW_50_PERCENT_REFERENCE:
             ax.axhline(50, color="black", linestyle="--", linewidth=1.0, zorder=1)
 
         ax.set_ylim(0, 100)
-        ax.set_ylabel("Attacker win rate (%)")
+        ax.set_ylabel(f"{WINRATE_SIDE.capitalize()} win rate (%)")
         ax.set_xlabel(fields["x_label"])
         ax.set_xticks(x_centers)
         ax.set_xticklabels(x_order, rotation=18, ha="right")
         ax.set_title(
-            player_matchup_title(output_folder) + '\n' + f"{fields['fixed_label']}: {fixed_troops} ({fixed_name})",
+            player_matchup_title(Path(INPUT_CSV).parent) + '\n' + f"{fields['fixed_label']}: {fixed_troops} ({fixed_name})",
             fontsize=14, pad=14,
         )
         ax.grid(axis="y", alpha=0.20, linewidth=0.7, zorder=0)
 
         legend_handles = []
         legend_labels = []
-        for key in split_order:
-            group, split = key
-            if key in used_splits:
-                legend_handles.append(Patch(
-                    facecolor=split_colors[key], hatch=split_hatches[key], edgecolor="black"
-                ))
-                legend_labels.append(f"{split}%  (range {group})")
+        seen_styles = set()
+        for key in style_order:
+            _, group, split = key
+            color, hatch = split_styles[key]
+            identity = (split, color, hatch)
+            if key in used_splits and identity not in seen_styles:
+                seen_styles.add(identity)
+                legend_handles.append(Patch(facecolor=color, hatch=hatch, edgecolor="black"))
+                legend_labels.append(f"{split}%")
         legend_handles.extend([
             Line2D([], [], marker="o", linestyle="None", markerfacecolor="white",
                    markeredgecolor="black", markersize=6),
@@ -290,15 +379,18 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
             legend_handles.append(Line2D([], [], color="black", linestyle="--", linewidth=1.0))
             legend_labels.append("50% win rate")
 
+        legend_columns = max(1, (len(legend_labels) + 19) // 20)
+        figure_width = FIGURE_WIDTH + 2.0 * (legend_columns - 1)
+        fig.set_size_inches(figure_width, FIGURE_HEIGHT)
         ax.legend(
-            legend_handles, legend_labels, title=fields["legend_title"],
+            legend_handles, legend_labels, title=fields["legend_title"], ncol=legend_columns,
             bbox_to_anchor=(1.02, 1), loc="upper left", borderaxespad=0,
             fontsize=9, title_fontsize=9.5,
         )
-        fig.tight_layout(rect=[0, 0, 0.82, 1])
+        fig.tight_layout(rect=[0, 0, 1 - 2.3 * legend_columns / figure_width, 1])
 
         filename = (
-            f"{PLOT_BY}_view_{plot_number:02d}_"
+            f"{WINRATE_SIDE}_winrate_{PLOT_BY}_view_{plot_number:02d}_"
             f"{_safe_filename(fixed_troops)}_{_safe_filename(fixed_name)}.png"
         )
         fig.savefig(output_folder / filename, dpi=DPI, bbox_inches="tight")
@@ -308,19 +400,26 @@ def make_plots(df: pd.DataFrame, output_folder: Path) -> tuple[pd.DataFrame, int
 
 
 def main() -> None:
-    global PLOT_BY, EXPERIMENT_FOLDER, INPUT_CSV, OUTPUT_FOLDER
+    global PLOT_BY, WINRATE_SIDE, EXPERIMENT_FOLDER, INPUT_CSV, OUTPUT_FOLDER
     parser = argparse.ArgumentParser(description="Plot Kingshot lead/troop experiment results.")
     parser.add_argument("--plot-by", choices=("attacker", "defender"), default=None)
+    parser.add_argument('--winrate-side', choices=('attacker', 'defender'), default=None,
+                        help='Whose win rate to plot; fixes the opposite side in each chart.')
     parser.add_argument('--experiment-folder', type=Path, default=None)
     args = parser.parse_args()
     if args.experiment_folder is not None:
         EXPERIMENT_FOLDER = args.experiment_folder
         INPUT_CSV = EXPERIMENT_FOLDER / CSV_FILENAME
         OUTPUT_FOLDER = EXPERIMENT_FOLDER
-    if args.plot_by is not None:
-        PLOT_BY = args.plot_by
+    if args.winrate_side is not None:
+        WINRATE_SIDE = args.winrate_side
+        if args.plot_by == WINRATE_SIDE:
+            parser.error('--plot-by must be the opposite side to --winrate-side.')
+    elif args.plot_by is not None:
+        WINRATE_SIDE = 'defender' if args.plot_by == 'attacker' else 'attacker'
+    PLOT_BY = 'defender' if WINRATE_SIDE == 'attacker' else 'attacker'
 
-    print(f"Plot perspective: {PLOT_BY}")
+    print(f"Plotted win rate: {WINRATE_SIDE}; fixed side per chart: {PLOT_BY}")
     print(f"Experiment folder: {EXPERIMENT_FOLDER.resolve()}")
     print(f"Input CSV: {INPUT_CSV.resolve()}")
     print(f"Plot output: {OUTPUT_FOLDER.resolve()}")

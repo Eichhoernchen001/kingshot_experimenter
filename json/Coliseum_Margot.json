@@ -1,0 +1,345 @@
+{
+    "name": "attacker",
+    "stats": {
+        "inf": {
+            "attack": 372.3,
+            "defense": 372.3,
+            "lethality": 113.5,
+            "health": 175.9
+        },
+        "lanc": {
+            "attack": 278.7,
+            "defense": 278.7,
+            "lethality": 298.3,
+            "health": 133
+        },
+        "mark": {
+            "attack": 446.4,
+            "defense": 446.4,
+            "lethality": 187,
+            "health": 131.6
+        }
+    },
+    "troops": [
+        {
+            "type": "inf",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 800000
+        },
+        {
+            "type": "lanc",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 800000
+        },
+        {
+            "type": "mark",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 0
+        }
+    ],
+    "heroes": {
+        "Triton": {
+            "name": "Triton",
+            "type": "inf",
+            "stats": {
+                "attack": 740.43,
+                "defense": 740.43,
+                "lethality": 433.5,
+                "health": 433.5
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Petra": {
+            "name": "Petra",
+            "type": "lanc",
+            "stats": {
+                "attack": 490.23,
+                "defense": 490.23,
+                "lethality": 370,
+                "health": 370
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 5
+        },
+        "Yang": {
+            "name": "Yang",
+            "type": "mark",
+            "stats": {
+                "attack": 740.43,
+                "defense": 740.43,
+                "lethality": 433.5,
+                "health": 433.5
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 5
+        },
+        "Rosa": {
+            "name": "Rosa",
+            "type": "mark",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Longfei": {
+            "name": "Longfei",
+            "type": "inf",
+            "stats": {
+                "attack": 464.35,
+                "defense": 514.35,
+                "lethality": 309.8,
+                "health": 455.65
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Hilde": {
+            "name": "Hilde",
+            "type": "lanc",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Jabel": {
+            "name": "Jabel",
+            "type": "lanc",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Vivian": {
+            "name": "Vivian",
+            "type": "mark",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Alcar": {
+            "name": "Alcar",
+            "type": "inf",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Margot": {
+            "name": "Margot",
+            "type": "lanc",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Thrud": {
+            "name": "Thrud",
+            "type": "lanc",
+            "stats": {
+                "attack": 644.35,
+                "defense": 644.35,
+                "lethality": 411,
+                "health": 411
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Marlin": {
+            "name": "Marlin",
+            "type": "mark",
+            "stats": {
+                "attack": 440.19,
+                "defense": 440.19,
+                "lethality": 360,
+                "health": 360
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Saul": {
+            "name": "Saul",
+            "type": "mark",
+            "stats": {
+                "attack": 0,
+                "defense": 0,
+                "lethality": 0,
+                "health": 0
+            },
+            "skill_levels": {
+                "1": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Amadeus": {
+            "name": "Amadeus",
+            "type": "inf",
+            "stats": {
+                "attack": 460.2,
+                "defense": 460.2,
+                "lethality": 362.5,
+                "health": 362.5
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Jaeger": {
+            "name": "Jaeger",
+            "type": "mark",
+            "stats": {
+                "attack": 490.23,
+                "defense": 490.23,
+                "lethality": 370,
+                "health": 370
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        }
+    },
+    "joiners": [
+        {
+            "id": 0,
+            "name": "Hilde",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 1,
+            "name": "Thrud",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 2,
+            "name": "Amadeus",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 3,
+            "name": "Triton",
+            "skill_levels": {
+                "1": 5
+            }
+        }
+    ],
+    "stats_include_heroes": true,
+    "special_bonuses": {
+        "includedInStats": true,
+        "widgetLevels": {},
+        "petLevels": {
+            "alpha-black-panther": 10,
+            "giant-rhino": 10,
+            "regal-white-lion": 10,
+            "ironclad-war-elephant": 10,
+            "ironclad-war-bear": 10,
+            "grizzly-bear": 0,
+            "moose": 0
+        },
+        "city": {
+            "lethality": 2,
+            "attack": 2,
+            "defense": 2,
+            "health": 2,
+            "enemyAttack": 0,
+            "enemyDefense": 0
+        },
+        "appointment": {
+            "kingdom": 0,
+            "power": 0
+        }
+    },
+    "selectedHeroes": [
+        "Triton",
+        "Thrud",
+        "Marlin"
+    ]
+}

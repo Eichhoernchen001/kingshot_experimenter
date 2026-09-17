@@ -203,6 +203,7 @@ def _save_first_prepared_profiles(
         ATTACK_TROOP_QUALITY,
         ATTACK_BASE_STAT_OVERRIDE,
         "attacker",
+        formation=first["atk_setup"],
     )
     defender_profile, _, _ = _make_profile(
         defender_baseline,
@@ -213,6 +214,7 @@ def _save_first_prepared_profiles(
         DEFENSE_TROOP_QUALITY,
         DEFENSE_BASE_STAT_OVERRIDE,
         "defender",
+        formation=first["def_setup"],
     )
 
     EXPERIMENT_FOLDER.mkdir(parents=True, exist_ok=True)
@@ -276,7 +278,10 @@ def _augment_machine_settings(
         ) from exc
 
     from kingshot_run_history import player_names
+    data['winrate_side'] = WINRATE_SIDE
+    data['varied_side'] = WINRATE_SIDE
     data['player_names'] = player_names(ACTIVE_KINGSHOT_CONFIG)
+    data['configuration'] = copy.deepcopy(ACTIVE_KINGSHOT_CONFIG)
     data["profile_progression"] = {
         "hero_progression_lookup": str(HERO_PROGRESSION_LOOKUP),
         "attacker": {
@@ -417,6 +422,8 @@ def _write_readable_settings(
         "",
     ]
     EXPERIMENT_FOLDER.mkdir(parents=True, exist_ok=True)
+    lines += ["", "Per-formation hero settings (authoritative)", "--------------------------------------------",
+              _pretty(ACTIVE_KINGSHOT_CONFIG["lead_troop"])]
     SETTINGS_TXT.write_text("\n".join(lines), encoding="utf-8")
     return SETTINGS_TXT
 
@@ -491,6 +498,7 @@ CSV_COLUMNS = [
     "base_stat_override_atk",
     "base_stat_override_def",
     "winrate",
+    "winrate_side",
 ]
 
 
@@ -553,8 +561,23 @@ def _normalise_leads(leads, label: str) -> dict[str, dict[str, Any]]:
             name = str(value).strip()
         if not name:
             raise SimulatorError(f"{label}: role '{role}' has no hero name.")
-        result[role] = {"name": name, "widget_level": 5}
+        rank = int(value.get("widget_level", 5)) if isinstance(value, dict) else 5
+        if not 0 <= rank <= 5:
+            raise SimulatorError(f"{label}: widget skill rank must be 0–5.")
+        result[role] = {"name": name, "widget_level": rank}
     return result
+
+
+def _configured_leads(formation, side, label):
+    leads = _normalise_leads(formation["leads"], label)
+    if "ACTIVE_KINGSHOT_CONFIG" in globals():
+        from kingshot_profile_template import hero_setting, active_widget_rank
+        from kingshot_players import assignment
+        cfg = ACTIVE_KINGSHOT_CONFIG
+        profile = cfg["profiles"][assignment(cfg["lead_troop"])[side]]
+        for role, value in leads.items():
+            value["widget_level"] = active_widget_rank(hero_setting(profile, formation, role, value["name"]))
+    return leads
 
 
 def _formation_name(leads: dict[str, dict[str, Any]]) -> str:
@@ -791,6 +814,7 @@ def _make_profile(
     troop_quality,
     base_stat_override,
     label: str,
+    formation: dict[str, Any] | None = None,
 ) -> tuple[Any, dict[str, str], dict[str, int]]:
     profile = copy.deepcopy(baseline)
 
@@ -807,6 +831,13 @@ def _make_profile(
     _set_joiners(profile, joiners, label)
     quantities = _set_troops(profile, troop_split, total_troops, troop_quality, label)
     _set_base_stats(profile, base_stat_override, label)
+    if formation is not None:
+        from kingshot_profile_template import apply_formation_stats
+        from kingshot_config import load_hero_catalog
+        apply_formation_stats(profile, ACTIVE_KINGSHOT_CONFIG["profiles"][ACTIVE_KINGSHOT_CONFIG["assignment"][label]],
+                              formation, load_hero_catalog(SCRIPT_FOLDER, ACTIVE_KINGSHOT_CONFIG), label)
+    if formation is not None:
+        lead_config = _configured_leads(formation, label, label)
     return profile, lead_config, quantities
 
 
@@ -861,8 +892,8 @@ def build_conditions() -> list[dict[str, Any]]:
                 f"Defense scenario {defense_index} is missing 'leads'."
             )
 
-        def_leads = _normalise_leads(
-            defense["leads"],
+        def_leads = _configured_leads(
+            defense, "defender",
             f"defense scenario {defense_index}",
         )
         def_name = _formation_name(def_leads)
@@ -883,8 +914,8 @@ def build_conditions() -> list[dict[str, Any]]:
                     f"Attack formation {attack_index} is missing 'leads'."
                 )
 
-            atk_leads = _normalise_leads(
-                attack["leads"],
+            atk_leads = _configured_leads(
+                attack, "attacker",
                 f"attack formation {attack_index}",
             )
             atk_name = _formation_name(atk_leads)
@@ -905,6 +936,8 @@ def build_conditions() -> list[dict[str, Any]]:
                     conditions.append(
                         {
                             "condition": condition_number,
+                            "atk_setup": copy.deepcopy(attack),
+                            "def_setup": copy.deepcopy(defense),
                             "defense_scenario": def_name,
                             "attack_formation": atk_name,
                             "defense_troop_variant": def_variant,
@@ -1025,6 +1058,9 @@ def _row_signature(row: dict[str, str]) -> tuple:
     )
 
 def _prepare_csv() -> dict[tuple, list[int]]:
+    if RESUME_FROM_CSV:
+        from kingshot_sequences import prepare_resume_perspective
+        prepare_resume_perspective(OUTPUT_CSV, WINRATE_SIDE)
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
 
     if (
@@ -1361,6 +1397,7 @@ async def run_experiment() -> None:
                     ATTACK_TROOP_QUALITY,
                     ATTACK_BASE_STAT_OVERRIDE,
                     "attacker",
+                    formation=c["atk_setup"],
                 )
                 defender_profile, def_leads, def_q = _make_profile(
                     defender_baseline,
@@ -1371,6 +1408,7 @@ async def run_experiment() -> None:
                     DEFENSE_TROOP_QUALITY,
                     DEFENSE_BASE_STAT_OVERRIDE,
                     "defender",
+                    formation=c["def_setup"],
                 )
 
                 attacker_path = tmpdir / "attacker_condition.json"
@@ -1424,7 +1462,8 @@ async def run_experiment() -> None:
                         f"  Running batch {batch}/{BATCHES_PER_CONDITION}...",
                         flush=True,
                     )
-                    winrate = await simulator.run_batch()
+                    from kingshot_sequences import recorded_winrate
+                    winrate = recorded_winrate(await simulator.run_batch(), WINRATE_SIDE)
                     write_last_run_stats(
                         LAST_RUN_STATS_FILE,
                         experiment="lead_troop",
@@ -1499,11 +1538,12 @@ async def run_experiment() -> None:
                         "base_stat_override_atk": json.dumps(ATTACK_BASE_STAT_OVERRIDE, sort_keys=True, separators=(",", ":")),
                         "base_stat_override_def": json.dumps(DEFENSE_BASE_STAT_OVERRIDE, sort_keys=True, separators=(",", ":")),
                         "winrate": winrate,
+                        "winrate_side": WINRATE_SIDE,
                     }
                     _append_csv(row)
 
                     print(
-                        f"  Batch {batch}/{BATCHES_PER_CONDITION}: {winrate}%",
+                        f"  Batch {batch}/{BATCHES_PER_CONDITION}: {WINRATE_SIDE} win chance = {winrate:g}%",
                         flush=True,
                     )
 
@@ -1531,9 +1571,7 @@ def preview_experiment() -> None:
 
 if __name__ == "__main__":
     import sys
-    if "--preview" in sys.argv:
-        print("Checking Kingshot lead/troop configuration...", flush=True)
-        preview_experiment()
-    else:
-        print("Running Kingshot lead/troop experiment...", flush=True)
-        run_spyder_compatible(run_experiment)
+    from kingshot_sequence_runner import execute_jobs
+    async def run_sequence():
+        await execute_jobs(ACTIVE_KINGSHOT_CONFIG, 'lead_troop', preview='--preview' in sys.argv)
+    run_spyder_compatible(run_sequence)

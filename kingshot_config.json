@@ -1,153 +1,27 @@
 {
-  "schema_version": 9,
+  "schema_version": 13,
   "profiles": {
     "A": {
-      "player_file": "json/playerA_data.json",
+      "player_file": "json/Earth_data.json",
+      "name": "Earth",
       "base_stats": {
         "inf": {
-          "attack": 996.4,
-          "defense": 983.8,
-          "lethality": 970.3,
-          "health": 966.5
+          "attack": 1998.2,
+          "defense": 2455.5,
+          "lethality": 3002.4,
+          "health": 2334.7
         },
         "lanc": {
-          "attack": 988.1,
-          "defense": 975.6,
-          "lethality": 953.0,
-          "health": 936.2
+          "attack": 1952.8,
+          "defense": 2399.6,
+          "lethality": 2919.9,
+          "health": 2267.6
         },
         "mark": {
-          "attack": 990.5,
-          "defense": 975.6,
-          "lethality": 950.9,
-          "health": 940.1
-        }
-      },
-      "special_bonuses": {
-        "petLevels": {
-          "alpha-black-panther": 10,
-          "giant-rhino": 10,
-          "regal-white-lion": 10,
-          "ironclad-war-elephant": 10,
-          "ironclad-war-bear": 10,
-          "grizzly-bear": 0,
-          "moose": 0
-        },
-        "city": {
-          "lethality": 2,
-          "attack": 2,
-          "defense": 2,
-          "health": 2,
-          "enemyAttack": 0,
-          "enemyDefense": 0
-        },
-        "appointment": {
-          "kingdom": 0,
-          "power": 0
-        }
-      },
-      "hero_progression": {
-        "enabled": true,
-        "stars_enabled": true,
-        "widgets_enabled": true,
-        "stars_source": "manual",
-        "defaults": {
-          "star_step": 30,
-          "widget_level": 10
-        },
-        "heroes": {}
-      },
-      "gear_enabled": true,
-      "special_bonuses_enabled": true,
-      "hero_gear": {
-        "inf": {
-          "helm": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "gloves": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "chest": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "boots": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          }
-        },
-        "cav": {
-          "helm": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "gloves": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "chest": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "boots": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          }
-        },
-        "arch": {
-          "helm": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "gloves": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "chest": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          },
-          "boots": {
-            "quality": "red",
-            "enhancement": 200,
-            "mastery": 20
-          }
-        }
-      }
-    },
-    "B": {
-      "player_file": "json/playerB_data.json",
-      "base_stats": {
-        "inf": {
-          "attack": 2200.0,
-          "defense": 2200.0,
-          "lethality": 2200.0,
-          "health": 2200.0
-        },
-        "lanc": {
-          "attack": 2200.0,
-          "defense": 2200.0,
-          "lethality": 2200.0,
-          "health": 2200.0
-        },
-        "mark": {
-          "attack": 2200.0,
-          "defense": 2200.0,
-          "lethality": 2200.0,
-          "health": 2200.0
+          "attack": 1878.4,
+          "defense": 2304.8,
+          "lethality": 2969.5,
+          "health": 2295.5
         }
       },
       "special_bonuses": {
@@ -189,71 +63,462 @@
       "hero_gear": {
         "inf": {
           "helm": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 179,
+            "mastery": 15
           },
           "gloves": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
           },
           "chest": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
           },
           "boots": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 15
           }
         },
         "cav": {
           "helm": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 16
           },
           "gloves": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 15
           },
           "chest": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 15
           },
           "boots": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 16
           }
         },
         "arch": {
           "helm": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
           },
           "gloves": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 20
           },
           "chest": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
           },
           "boots": {
-            "quality": "none",
-            "enhancement": 0,
-            "mastery": 0
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
           }
         }
-      }
+      },
+      "imported_hero_stats": {
+        "Amadeus": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Jabel": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Saul": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Hilde": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Marlin": {
+          "attack": 440.19,
+          "defense": 440.19,
+          "lethality": 360.0,
+          "health": 360.0
+        },
+        "Petra": {
+          "attack": 310.3,
+          "defense": 310.3,
+          "lethality": 308.0,
+          "health": 95.0
+        },
+        "Jaeger": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Alcar": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Margot": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Rosa": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Long Fei": {
+          "attack": 464.35,
+          "defense": 514.35,
+          "lethality": 309.8,
+          "health": 455.65
+        },
+        "Thrud": {
+          "attack": 644.35,
+          "defense": 644.35,
+          "lethality": 411.0,
+          "health": 411.0
+        },
+        "Vivian": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Triton": {
+          "attack": 740.43,
+          "defense": 740.43,
+          "lethality": 433.5,
+          "health": 433.5
+        },
+        "Sophia": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Yang": {
+          "attack": 492.17,
+          "defense": 492.17,
+          "lethality": 415.85,
+          "health": 250.1
+        }
+      },
+      "imported_stats_include_heroes": true,
+      "imported_widget_ranks": {
+        "Amadeus": 0,
+        "Jabel": 0,
+        "Saul": 0,
+        "Hilde": 0,
+        "Marlin": 0,
+        "Petra": 0,
+        "Jaeger": 0,
+        "Alcar": 0,
+        "Margot": 0,
+        "Rosa": 0,
+        "Long Fei": 0,
+        "Thrud": 0,
+        "Vivian": 0,
+        "Triton": 0,
+        "Sophia": 0,
+        "Yang": 0
+      },
+      "input_values_embedded": true,
+      "imported_specials_included": true,
+      "prefer_imported_stats": true,
+      "widget_levels": {
+        "inf": 10,
+        "cav": 10,
+        "arch": 10
+      },
+      "gear_enabled_by_role": {
+        "inf": false,
+        "cav": false,
+        "arch": false
+      },
+      "widget_stats_by_role": {
+        "inf": true,
+        "cav": true,
+        "arch": true
+      },
+      "shared_gear": true
+    },
+    "B": {
+      "player_file": "json/Baldo_raw.json",
+      "name": "Baldo",
+      "base_stats": {
+        "inf": {
+          "attack": 996.4,
+          "defense": 983.8,
+          "lethality": 970.3,
+          "health": 966.5
+        },
+        "lanc": {
+          "attack": 988.1,
+          "defense": 975.6,
+          "lethality": 953.0,
+          "health": 936.2
+        },
+        "mark": {
+          "attack": 990.5,
+          "defense": 975.6,
+          "lethality": 950.9,
+          "health": 940.1
+        }
+      },
+      "special_bonuses": {
+        "petLevels": {
+          "alpha-black-panther": 10,
+          "giant-rhino": 10,
+          "regal-white-lion": 10,
+          "ironclad-war-elephant": 10,
+          "ironclad-war-bear": 10,
+          "grizzly-bear": 8,
+          "moose": 7
+        },
+        "city": {
+          "lethality": 2,
+          "attack": 2,
+          "defense": 2,
+          "health": 2,
+          "enemyAttack": 0,
+          "enemyDefense": 0
+        },
+        "appointment": {
+          "kingdom": 0,
+          "power": 0
+        }
+      },
+      "hero_progression": {
+        "enabled": true,
+        "stars_enabled": true,
+        "widgets_enabled": true,
+        "stars_source": "manual",
+        "defaults": {
+          "star_step": 30,
+          "widget_level": 10
+        },
+        "heroes": {}
+      },
+      "gear_enabled": true,
+      "special_bonuses_enabled": true,
+      "hero_gear": {
+        "inf": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 179,
+            "mastery": 15
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 15
+          }
+        },
+        "cav": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 16
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 15
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 15
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 16
+          }
+        },
+        "arch": {
+          "helm": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "gloves": {
+            "quality": "red",
+            "enhancement": 199,
+            "mastery": 20
+          },
+          "chest": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          },
+          "boots": {
+            "quality": "red",
+            "enhancement": 200,
+            "mastery": 20
+          }
+        }
+      },
+      "imported_hero_stats": {
+        "Amadeus": {
+          "attack": 460.2,
+          "defense": 460.2,
+          "lethality": 362.5,
+          "health": 362.5
+        },
+        "Jabel": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Saul": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Hilde": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Marlin": {
+          "attack": 440.19,
+          "defense": 440.19,
+          "lethality": 360.0,
+          "health": 360.0
+        },
+        "Petra": {
+          "attack": 490.23,
+          "defense": 490.23,
+          "lethality": 370.0,
+          "health": 370.0
+        },
+        "Jaeger": {
+          "attack": 490.23,
+          "defense": 490.23,
+          "lethality": 370.0,
+          "health": 370.0
+        },
+        "Alcar": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Margot": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Rosa": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Long Fei": {
+          "attack": 464.35,
+          "defense": 514.35,
+          "lethality": 309.8,
+          "health": 455.65
+        },
+        "Thrud": {
+          "attack": 644.35,
+          "defense": 644.35,
+          "lethality": 411.0,
+          "health": 411.0
+        },
+        "Vivian": {
+          "attack": 0.0,
+          "defense": 0.0,
+          "lethality": 0.0,
+          "health": 0.0
+        },
+        "Triton": {
+          "attack": 740.43,
+          "defense": 740.43,
+          "lethality": 433.5,
+          "health": 433.5
+        },
+        "Yang": {
+          "attack": 740.43,
+          "defense": 740.43,
+          "lethality": 433.5,
+          "health": 433.5
+        }
+      },
+      "imported_stats_include_heroes": false,
+      "imported_widget_ranks": {
+        "Amadeus": 0,
+        "Jabel": 0,
+        "Saul": 0,
+        "Hilde": 0,
+        "Marlin": 0,
+        "Petra": 5,
+        "Jaeger": 0,
+        "Alcar": 0,
+        "Margot": 0,
+        "Rosa": 0,
+        "Long Fei": 0,
+        "Thrud": 0,
+        "Vivian": 0,
+        "Triton": 0,
+        "Yang": 5
+      },
+      "input_values_embedded": true,
+      "widget_levels": {
+        "inf": 10,
+        "cav": 10,
+        "arch": 10
+      },
+      "gear_enabled_by_role": {
+        "inf": true,
+        "cav": true,
+        "arch": true
+      },
+      "widget_stats_by_role": {
+        "inf": true,
+        "cav": true,
+        "arch": true
+      },
+      "shared_gear": true
     }
   },
   "assignment": {
@@ -269,8 +534,8 @@
   },
   "run": {
     "simulations_per_batch": 100,
-    "batches_per_condition": 1,
-    "resume": false,
+    "batches_per_condition": 3,
+    "resume": true,
     "headless": true,
     "timeout_seconds": 30,
     "delay_between_batches_seconds": 0.5
@@ -291,8 +556,7 @@
           "tier": 11,
           "tg_level": 8
         }
-      },
-      "base_stat_override": null
+      }
     },
     "defender": {
       "total_troops": 1600000,
@@ -309,24 +573,163 @@
           "tier": 11,
           "tg_level": 8
         }
-      },
-      "base_stat_override": 2200
+      }
     }
   },
   "lead_troop": {
     "attacker": {
       "formations": [
         {
-          "joiners": [
-            "Yang",
-            "Triton",
-            "Gordon",
-            "Fahd"
+          "joiners": null,
+          "leads": {
+            "inf": "Triton",
+            "cav": "Petra",
+            "arch": "Yang"
+          },
+          "widget_buffs": {
+            "inf": false,
+            "cav": false,
+            "arch": false
+          },
+          "hero_settings": {
+            "Triton": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 740.43,
+                "defense": 740.43,
+                "lethality": 433.5,
+                "health": 433.5
+              },
+              "imported_widget_rank": 0
+            },
+            "Petra": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 310.3,
+                "defense": 310.3,
+                "lethality": 308.0,
+                "health": 95.0
+              },
+              "imported_widget_rank": 0
+            },
+            "Yang": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 492.17,
+                "defense": 492.17,
+                "lethality": 415.85,
+                "health": 250.1
+              },
+              "imported_widget_rank": 0
+            }
+          },
+          "add_hero_stats": {
+            "inf": false,
+            "cav": false,
+            "arch": false
+          },
+          "troop_variants_pct": [
+            [
+              50,
+              10,
+              40
+            ]
           ],
+          "troop_variant_groups": [
+            1
+          ],
+          "troop_range_lines": [
+            "50/10/40"
+          ]
+        }
+      ]
+    },
+    "defender": {
+      "formations": [
+        {
+          "joiners": null,
           "leads": {
             "inf": "Triton",
             "cav": "Thrud",
-            "arch": "Marlin"
+            "arch": "Jaeger"
+          },
+          "widget_buffs": {
+            "inf": true,
+            "cav": false,
+            "arch": true
+          },
+          "hero_settings": {
+            "Triton": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 740.43,
+                "defense": 740.43,
+                "lethality": 433.5,
+                "health": 433.5
+              },
+              "imported_widget_rank": 0
+            },
+            "Thrud": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 644.35,
+                "defense": 644.35,
+                "lethality": 411.0,
+                "health": 411.0
+              },
+              "imported_widget_rank": 0
+            },
+            "Marlin": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 440.19,
+                "defense": 440.19,
+                "lethality": 360.0,
+                "health": 360.0
+              },
+              "imported_widget_rank": 0
+            },
+            "Jaeger": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 490.23,
+                "defense": 490.23,
+                "lethality": 370.0,
+                "health": 370.0
+              },
+              "imported_widget_rank": 0
+            },
+            "Vivian": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 0.0,
+                "defense": 0.0,
+                "lethality": 0.0,
+                "health": 0.0
+              },
+              "imported_widget_rank": 0
+            }
+          },
+          "add_hero_stats": {
+            "inf": true,
+            "cav": true,
+            "arch": true
           },
           "troop_variants_pct": [
             [
@@ -364,181 +767,62 @@
           ],
           "troop_range_lines": [
             "70:30/30:70/0 - 10"
-          ],
-          "widget_buffs": {
-            "inf": true,
-            "cav": true,
-            "arch": true
-          }
-        },
-        {
-          "joiners": [
-            "Vivian",
-            "Thrud",
-            "Amane",
-            "Chenko"
-          ],
-          "leads": {
-            "inf": "Triton",
-            "cav": "Petra",
-            "arch": "Yang"
-          },
-          "troop_variants_pct": [
-            [
-              20,
-              5,
-              75
-            ],
-            [
-              30,
-              5,
-              65
-            ],
-            [
-              40,
-              5,
-              55
-            ],
-            [
-              50,
-              5,
-              45
-            ],
-            [
-              60,
-              5,
-              35
-            ],
-            [
-              20,
-              10,
-              70
-            ],
-            [
-              30,
-              10,
-              60
-            ],
-            [
-              40,
-              10,
-              50
-            ],
-            [
-              50,
-              10,
-              40
-            ],
-            [
-              60,
-              10,
-              30
-            ],
-            [
-              20,
-              15,
-              65
-            ],
-            [
-              30,
-              15,
-              55
-            ],
-            [
-              40,
-              15,
-              45
-            ],
-            [
-              50,
-              15,
-              35
-            ],
-            [
-              60,
-              15,
-              25
-            ]
-          ],
-          "troop_variant_groups": [
-            1,
-            1,
-            1,
-            1,
-            1,
-            2,
-            2,
-            2,
-            2,
-            2,
-            3,
-            3,
-            3,
-            3,
-            3
-          ],
-          "troop_range_lines": [
-            "20:60/5/75:35 - 10",
-            "20:60/10/70:30 - 10",
-            "20:60/15/65:25 - 10"
-          ],
-          "widget_buffs": {
-            "inf": true,
-            "cav": true,
-            "arch": true
-          }
+          ]
         }
       ]
     },
-    "defender": {
-      "formations": [
-        {
-          "joiners": null,
-          "leads": {
-            "inf": "Triton",
-            "cav": "Petra",
-            "arch": "Yang"
-          },
-          "troop_variants_pct": [
-            [
-              50,
-              10,
-              40
-            ]
-          ],
-          "troop_variant_groups": [
-            1
-          ],
-          "troop_range_lines": [
-            "50/10/40"
-          ],
-          "widget_buffs": {
-            "inf": true,
-            "cav": true,
-            "arch": true
-          }
-        }
-      ]
-    },
-    "only_matchups": null
+    "only_matchups": null,
+    "fixed_side": "attacker",
+    "assignment": {
+      "attacker": "A",
+      "defender": "B"
+    }
   },
   "joiner": {
     "attacker": {
       "leads": {
         "inf": "Triton",
-        "cav": "Thrud",
-        "arch": "Marlin"
+        "cav": "Sophia",
+        "arch": "Vivian"
       },
       "widget_buffs": {
-        "inf": true,
-        "cav": true,
-        "arch": true
+        "inf": false,
+        "cav": false,
+        "arch": false
       },
       "troop_percentages": [
         50,
-        50,
-        0
+        10,
+        40
       ],
+      "add_hero_stats": {
+        "inf": false,
+        "cav": false,
+        "arch": false
+      },
+      "hero_settings": {
+        "Triton": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        },
+        "Sophia": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        },
+        "Vivian": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        }
+      },
       "pools": {
         "4": [],
         "3": [],
@@ -563,50 +847,110 @@
     "defender": {
       "leads": {
         "inf": "Triton",
-        "cav": "Sophia",
-        "arch": "Vivian"
+        "cav": "Thrud",
+        "arch": "Jaeger"
       },
       "widget_buffs": {
+        "inf": true,
+        "cav": false,
+        "arch": true
+      },
+      "troop_percentages": [
+        50,
+        50,
+        0
+      ],
+      "add_hero_stats": {
         "inf": true,
         "cav": true,
         "arch": true
       },
-      "troop_percentages": [
-        60,
-        10,
-        30
-      ],
+      "hero_settings": {
+        "Triton": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        },
+        "Thrud": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        },
+        "Marlin": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": null,
+          "imported_widget_rank": null
+        },
+        "Jaeger": {
+          "star_step": 30,
+          "stars_enabled": true,
+          "stats_source": "manual",
+          "imported_stats": {
+            "attack": 490.23,
+            "defense": 490.23,
+            "lethality": 370.0,
+            "health": 370.0
+          },
+          "imported_widget_rank": 0
+        }
+      },
       "pools": {
-        "4": [],
+        "4": [
+          "Yang"
+        ],
         "3": [],
         "2": [],
         "1": [
-          "Amane",
-          "Chenko",
-          "Fahd",
           "Gordon",
-          "Hilde",
-          "Howard",
-          "Petra",
+          "Chenko",
+          "Amane",
+          "Fahd",
           "Saul",
-          "Thrud",
-          "Triton",
+          "Petra",
           "Vivian",
-          "Yang"
+          "Triton"
         ]
       },
       "manual_slots": [
-        [],
-        [],
+        [
+          "Yang"
+        ],
+        [
+          "Yang"
+        ],
         [],
         []
       ]
+    },
+    "varied_side": "defender",
+    "assignment": {
+      "attacker": "A",
+      "defender": "B"
+    },
+    "sampling": {
+      "mode": "complete",
+      "target_heroes": 6,
+      "screen_batches_per_hero": 5,
+      "screen_max_rounds": 5,
+      "refinement_batches_per_hero": 20,
+      "validation_lineups": 30,
+      "validation_batches": 3,
+      "duplicate_limit": 2,
+      "standout_max_copies": 4,
+      "seed": 20260916
     }
   },
   "plotter": {
-    "plot_by": "defender",
+    "plot_by": "attacker",
     "show_50_percent_reference": false,
-    "show_mean_labels": false
+    "show_mean_labels": false,
+    "winrate_side": "defender"
   },
   "analysis": {
     "side": "auto",
@@ -619,5 +963,929 @@
     "pair_synergy": true,
     "triple_synergy": true,
     "top_n": 10
-  }
+  },
+  "player_setup": {
+    "A": {
+      "total_troops": 1600000,
+      "troop_quality": {
+        "inf": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "cav": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "arch": {
+          "tier": 11,
+          "tg_level": 8
+        }
+      }
+    },
+    "B": {
+      "total_troops": 1600000,
+      "troop_quality": {
+        "inf": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "cav": {
+          "tier": 11,
+          "tg_level": 8
+        },
+        "arch": {
+          "tier": 11,
+          "tg_level": 8
+        }
+      }
+    }
+  },
+  "experiments": {
+    "lead_troop": [
+      {
+        "attacker": {
+          "formations": [
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Petra",
+                "arch": "Yang"
+              },
+              "widget_buffs": {
+                "inf": false,
+                "cav": false,
+                "arch": false
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Petra": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 310.3,
+                    "defense": 310.3,
+                    "lethality": 308.0,
+                    "health": 95.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Yang": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 492.17,
+                    "defense": 492.17,
+                    "lethality": 415.85,
+                    "health": 250.1
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": false,
+                "cav": false,
+                "arch": false
+              },
+              "troop_variants_pct": [
+                [
+                  50,
+                  10,
+                  40
+                ]
+              ],
+              "troop_variant_groups": [
+                1
+              ],
+              "troop_range_lines": [
+                "50/10/40"
+              ]
+            }
+          ]
+        },
+        "defender": {
+          "formations": [
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Thrud",
+                "arch": "Jaeger"
+              },
+              "widget_buffs": {
+                "inf": true,
+                "cav": false,
+                "arch": true
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Thrud": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 644.35,
+                    "defense": 644.35,
+                    "lethality": 411.0,
+                    "health": 411.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Marlin": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 440.19,
+                    "defense": 440.19,
+                    "lethality": 360.0,
+                    "health": 360.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Jaeger": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 490.23,
+                    "defense": 490.23,
+                    "lethality": 370.0,
+                    "health": 370.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Vivian": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "troop_variants_pct": [
+                [
+                  70,
+                  30,
+                  0
+                ],
+                [
+                  60,
+                  40,
+                  0
+                ],
+                [
+                  50,
+                  50,
+                  0
+                ],
+                [
+                  40,
+                  60,
+                  0
+                ],
+                [
+                  30,
+                  70,
+                  0
+                ]
+              ],
+              "troop_variant_groups": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "troop_range_lines": [
+                "70:30/30:70/0 - 10"
+              ]
+            }
+          ]
+        },
+        "only_matchups": null,
+        "fixed_side": "attacker",
+        "assignment": {
+          "attacker": "A",
+          "defender": "B"
+        }
+      },
+      {
+        "attacker": {
+          "formations": [
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Petra",
+                "arch": "Yang"
+              },
+              "widget_buffs": {
+                "inf": false,
+                "cav": false,
+                "arch": false
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Petra": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 310.3,
+                    "defense": 310.3,
+                    "lethality": 308.0,
+                    "health": 95.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Yang": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 492.17,
+                    "defense": 492.17,
+                    "lethality": 415.85,
+                    "health": 250.1
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": false,
+                "cav": false,
+                "arch": false
+              },
+              "troop_variants_pct": [
+                [
+                  60,
+                  10,
+                  30
+                ]
+              ],
+              "troop_variant_groups": [
+                1
+              ],
+              "troop_range_lines": [
+                "60/10/30"
+              ]
+            }
+          ]
+        },
+        "defender": {
+          "formations": [
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Thrud",
+                "arch": "Jaeger"
+              },
+              "widget_buffs": {
+                "inf": true,
+                "cav": false,
+                "arch": true
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Thrud": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 644.35,
+                    "defense": 644.35,
+                    "lethality": 411.0,
+                    "health": 411.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Marlin": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 440.19,
+                    "defense": 440.19,
+                    "lethality": 360.0,
+                    "health": 360.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Jaeger": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 490.23,
+                    "defense": 490.23,
+                    "lethality": 370.0,
+                    "health": 370.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Vivian": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "troop_variants_pct": [
+                [
+                  70,
+                  30,
+                  0
+                ],
+                [
+                  60,
+                  40,
+                  0
+                ],
+                [
+                  50,
+                  50,
+                  0
+                ],
+                [
+                  40,
+                  60,
+                  0
+                ],
+                [
+                  30,
+                  70,
+                  0
+                ]
+              ],
+              "troop_variant_groups": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "troop_range_lines": [
+                "70:30/30:70/0 - 10"
+              ]
+            },
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Sophia",
+                "arch": "Vivian"
+              },
+              "widget_buffs": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Thrud": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 644.35,
+                    "defense": 644.35,
+                    "lethality": 411.0,
+                    "health": 411.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Marlin": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 440.19,
+                    "defense": 440.19,
+                    "lethality": 360.0,
+                    "health": 360.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Petra": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 490.23,
+                    "defense": 490.23,
+                    "lethality": 370.0,
+                    "health": 370.0
+                  },
+                  "imported_widget_rank": 5
+                },
+                "Yang": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 5
+                },
+                "Sophia": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Vivian": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "troop_variants_pct": [
+                [
+                  70,
+                  10,
+                  20
+                ],
+                [
+                  60,
+                  10,
+                  30
+                ],
+                [
+                  50,
+                  10,
+                  40
+                ],
+                [
+                  40,
+                  10,
+                  50
+                ],
+                [
+                  30,
+                  10,
+                  60
+                ]
+              ],
+              "troop_variant_groups": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "troop_range_lines": [
+                "70:30/10/20:60 - 10"
+              ]
+            },
+            {
+              "joiners": null,
+              "leads": {
+                "inf": "Triton",
+                "cav": "Hilde",
+                "arch": "Vivian"
+              },
+              "widget_buffs": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "hero_settings": {
+                "Triton": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Thrud": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 644.35,
+                    "defense": 644.35,
+                    "lethality": 411.0,
+                    "health": 411.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Marlin": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 440.19,
+                    "defense": 440.19,
+                    "lethality": 360.0,
+                    "health": 360.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Petra": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 490.23,
+                    "defense": 490.23,
+                    "lethality": 370.0,
+                    "health": 370.0
+                  },
+                  "imported_widget_rank": 5
+                },
+                "Yang": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 740.43,
+                    "defense": 740.43,
+                    "lethality": 433.5,
+                    "health": 433.5
+                  },
+                  "imported_widget_rank": 5
+                },
+                "Sophia": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Vivian": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                },
+                "Hilde": {
+                  "star_step": 30,
+                  "stars_enabled": true,
+                  "stats_source": "manual",
+                  "imported_stats": {
+                    "attack": 0.0,
+                    "defense": 0.0,
+                    "lethality": 0.0,
+                    "health": 0.0
+                  },
+                  "imported_widget_rank": 0
+                }
+              },
+              "add_hero_stats": {
+                "inf": true,
+                "cav": true,
+                "arch": true
+              },
+              "troop_variants_pct": [
+                [
+                  70,
+                  10,
+                  20
+                ],
+                [
+                  60,
+                  10,
+                  30
+                ],
+                [
+                  50,
+                  10,
+                  40
+                ],
+                [
+                  40,
+                  10,
+                  50
+                ],
+                [
+                  30,
+                  10,
+                  60
+                ]
+              ],
+              "troop_variant_groups": [
+                1,
+                1,
+                1,
+                1,
+                1
+              ],
+              "troop_range_lines": [
+                "70:30/10/20:60 - 10"
+              ]
+            }
+          ]
+        },
+        "only_matchups": null,
+        "fixed_side": "attacker",
+        "assignment": {
+          "attacker": "A",
+          "defender": "B"
+        }
+      }
+    ],
+    "joiner": [
+      {
+        "attacker": {
+          "leads": {
+            "inf": "Triton",
+            "cav": "Sophia",
+            "arch": "Vivian"
+          },
+          "widget_buffs": {
+            "inf": false,
+            "cav": false,
+            "arch": false
+          },
+          "troop_percentages": [
+            50,
+            10,
+            40
+          ],
+          "add_hero_stats": {
+            "inf": false,
+            "cav": false,
+            "arch": false
+          },
+          "hero_settings": {
+            "Triton": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            },
+            "Sophia": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            },
+            "Vivian": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            }
+          },
+          "pools": {
+            "4": [],
+            "3": [],
+            "2": [],
+            "1": []
+          },
+          "manual_slots": [
+            [
+              "Hilde"
+            ],
+            [
+              "Thrud"
+            ],
+            [
+              "Amadeus"
+            ],
+            [
+              "Triton"
+            ]
+          ]
+        },
+        "defender": {
+          "leads": {
+            "inf": "Triton",
+            "cav": "Thrud",
+            "arch": "Jaeger"
+          },
+          "widget_buffs": {
+            "inf": true,
+            "cav": false,
+            "arch": true
+          },
+          "troop_percentages": [
+            50,
+            50,
+            0
+          ],
+          "add_hero_stats": {
+            "inf": true,
+            "cav": true,
+            "arch": true
+          },
+          "hero_settings": {
+            "Triton": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            },
+            "Thrud": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            },
+            "Marlin": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": null,
+              "imported_widget_rank": null
+            },
+            "Jaeger": {
+              "star_step": 30,
+              "stars_enabled": true,
+              "stats_source": "manual",
+              "imported_stats": {
+                "attack": 490.23,
+                "defense": 490.23,
+                "lethality": 370.0,
+                "health": 370.0
+              },
+              "imported_widget_rank": 0
+            }
+          },
+          "pools": {
+            "4": [
+              "Yang"
+            ],
+            "3": [],
+            "2": [],
+            "1": [
+              "Gordon",
+              "Chenko",
+              "Amane",
+              "Fahd",
+              "Saul",
+              "Petra",
+              "Vivian",
+              "Triton"
+            ]
+          },
+          "manual_slots": [
+            [
+              "Yang"
+            ],
+            [
+              "Yang"
+            ],
+            [],
+            []
+          ]
+        },
+        "varied_side": "defender",
+        "assignment": {
+          "attacker": "A",
+          "defender": "B"
+        },
+        "sampling": {
+          "mode": "complete",
+          "target_heroes": 6,
+          "screen_batches_per_hero": 5,
+          "screen_max_rounds": 5,
+          "refinement_batches_per_hero": 20,
+          "validation_lineups": 30,
+          "validation_batches": 3,
+          "duplicate_limit": 2,
+          "standout_max_copies": 4,
+          "seed": 20260916
+        }
+      }
+    ]
+  },
+  "experiment_selection": {
+    "lead_troop": 0,
+    "joiner": 0
+  },
+  "result_names": {
+    "lead_troop": "Baldo_defense_2",
+    "joiner": "",
+    "all": ""
+  },
+  "migration_notes": [
+    "Earth: older formations used different inf gear. The first edited set is now shared; review Gear / Widgets on page 1.",
+    "Earth: older formations used different cav gear. The first edited set is now shared; review Gear / Widgets on page 1.",
+    "Baldo: older formations used different inf gear. The first edited set is now shared; review Gear / Widgets on page 1.",
+    "Baldo: older formations used different cav gear. The first edited set is now shared; review Gear / Widgets on page 1.",
+    "Baldo: older formations used different arch gear. The first edited set is now shared; review Gear / Widgets on page 1."
+  ]
 }

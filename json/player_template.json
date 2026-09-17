@@ -1,0 +1,86 @@
+{
+  "name": "attacker",
+  "stats": {
+    "inf": {
+      "attack": 0,
+      "defense": 0,
+      "lethality": 0,
+      "health": 0
+    },
+    "lanc": {
+      "attack": 0,
+      "defense": 0,
+      "lethality": 0,
+      "health": 0
+    },
+    "mark": {
+      "attack": 0,
+      "defense": 0,
+      "lethality": 0,
+      "health": 0
+    }
+  },
+  "troops": [
+    {
+      "type": "inf",
+      "tier": 11,
+      "fc_level": 0,
+      "quantity": 0
+    },
+    {
+      "type": "lanc",
+      "tier": 11,
+      "fc_level": 0,
+      "quantity": 0
+    },
+    {
+      "type": "mark",
+      "tier": 11,
+      "fc_level": 0,
+      "quantity": 0
+    }
+  ],
+  "heroes": {},
+  "joiners": [
+    {
+      "id": 0,
+      "name": null,
+      "skill_levels": {
+        "1": 5
+      }
+    },
+    {
+      "id": 1,
+      "name": null,
+      "skill_levels": {
+        "1": 5
+      }
+    },
+    {
+      "id": 2,
+      "name": null,
+      "skill_levels": {
+        "1": 5
+      }
+    },
+    {
+      "id": 3,
+      "name": null,
+      "skill_levels": {
+        "1": 5
+      }
+    }
+  ],
+  "selectedHeroes": [],
+  "stats_include_heroes": false,
+  "special_bonuses": {
+    "includedInStats": false,
+    "widgetLevels": {},
+    "petLevels": {},
+    "city": {},
+    "appointment": {
+      "kingdom": 0,
+      "power": 0
+    }
+  }
+}

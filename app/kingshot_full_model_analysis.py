@@ -36,6 +36,10 @@ Given one or more Kingshot simulator CSV files, this script produces:
 
 Important identifiability handling
 ----------------------------------
+All models retain the identity link and percentage-point effects. Reported
+predictions are clamped to [0, 1], including floating-point boundary overshoots.
+No logistic fallback is applied.
+
 When every squad contains the same number of DISTINCT heroes (for example all
 C(9,4)=126 squads), hero main effects and all pair interactions are not
 simultaneously identifiable without a convention. In that case the script
@@ -206,14 +210,27 @@ def choose_analysis_side(frames: list[pd.DataFrame], requested_side: str) -> tup
     return chosen, n_attacker, n_defender
 
 
+def _stored_winrate_side(df, path=None):
+    if 'winrate_side' in df.columns:
+        values=set(df['winrate_side'].dropna().astype(str).str.strip())
+        if len(values)!=1 or not values.issubset({'attacker','defender'}):
+            raise ValueError('CSV must contain one consistent attacker/defender winrate_side.')
+        return next(iter(values))
+    if path is not None:
+        settings=Path(path).with_name(Path(path).stem+'_experiment_settings.json')
+        if settings.is_file():
+            side=json.loads(settings.read_text(encoding='utf-8-sig')).get('winrate_side')
+            if side in ('attacker','defender'):return side
+    return None
+
+
 def load_files(paths: list[Path], trials_per_row: int, requested_side: str):
     """
     Load one or more joiner-experiment CSVs.
 
-    The simulator CSV stores attacker win rate. If defender is selected, the
-    modeled response is reversed to defender win probability:
-
-        defender win rate = 100 - attacker win rate
+    New CSVs explicitly store the varied side in winrate_side; their response
+    is used directly. Legacy CSVs without perspective metadata contain attacker
+    win rate and are converted when modeling the defender.
 
     Consequently every reported prediction, hero contribution, and synergy is
     from the perspective of the selected side.
@@ -255,21 +272,23 @@ def load_files(paths: list[Path], trials_per_row: int, requested_side: str):
 
         frames.append(df)
 
+    stored_sides=[_stored_winrate_side(df,path) for path,df in zip(paths,frames)]
+    effective_request=requested_side
+    if requested_side=='auto' and stored_sides and all(s is not None for s in stored_sides):
+        if len(set(stored_sides))!=1:raise ValueError('Analyze experiments with different varied sides separately.')
+        effective_request=stored_sides[0]
     chosen_side, n_attacker_lineups, n_defender_lineups = choose_analysis_side(
-        frames, requested_side
+        frames, effective_request
     )
 
     slots = attacker_slots0 if chosen_side == "attacker" else defender_slots0
 
     processed = []
     for path, df in zip(paths, frames):
-        # Preserve the simulator's original attacker-perspective win rate.
-        df["attacker_winrate"] = df["winrate"].astype(float)
-
-        if chosen_side == "defender":
-            df["analysis_winrate"] = 100.0 - df["attacker_winrate"]
-        else:
-            df["analysis_winrate"] = df["attacker_winrate"]
+        stored_side=_stored_winrate_side(df,path) or 'attacker'
+        df['attacker_winrate']=df['winrate'].astype(float) if stored_side=='attacker' else 100.0-df['winrate'].astype(float)
+        df['analysis_winrate']=df['winrate'].astype(float) if stored_side==chosen_side else 100.0-df['winrate'].astype(float)
+        df['response_converted']=stored_side!=chosen_side
 
         df["wins"] = np.rint(
             df["analysis_winrate"] * trials_per_row / 100.0
@@ -499,10 +518,7 @@ def fit_binomial_linear_constraints(
     beta = B @ theta
     pred = Xarr @ beta
 
-    if pred.min() <= 0 or pred.max() >= 1:
-        raise RuntimeError(
-            "Constrained identity-link model predicted outside (0,1)."
-        )
+    pred = np.clip(pred, 0.0, 1.0)
 
     dispersion = max(1.0, res.pearson_chi2 / res.df_resid)
     cov_theta = np.asarray(res.cov_params()) * dispersion
@@ -936,11 +952,7 @@ def fit_binomial_direct(cond: pd.DataFrame, X: pd.DataFrame) -> FitResult:
         ).fit()
 
     pred = np.asarray(res.predict(X), dtype=float)
-    if pred.min() <= 0 or pred.max() >= 1:
-        raise RuntimeError(
-            "Identity-link binomial model predicted outside (0,1). "
-            "A logit-link implementation would be required for this dataset."
-        )
+    pred = np.clip(pred, 0.0, 1.0)
 
     dispersion = max(1.0, res.pearson_chi2 / res.df_resid)
     cov = res.cov_params().to_numpy() * dispersion
@@ -1034,10 +1046,7 @@ def fit_binomial_zero_sum_synergies(
     beta = B @ theta
     pred = Xarr @ beta
 
-    if pred.min() <= 0 or pred.max() >= 1:
-        raise RuntimeError(
-            "Constrained identity-link model predicted outside (0,1)."
-        )
+    pred = np.clip(pred, 0.0, 1.0)
 
     dispersion = max(1.0, res.pearson_chi2 / res.df_resid)
 
@@ -1427,8 +1436,8 @@ def plot_prediction(
     x = np.linspace(lo, hi, 400)
     ax.fill_between(x, x - avg_halfwidth_pp, x + avg_halfwidth_pp, color="gray", alpha=0.20)
     ax.plot(x, x, color="black")
-    ax.set_xlabel("Model-predicted win rate (%)")
-    ax.set_ylabel("Observed win rate (%)")
+    ax.set_xlabel(f"Model-predicted {modeled_side} win rate (%)")
+    ax.set_ylabel(f"Observed {modeled_side} win rate (%)")
     title_lines = [
         "Model prediction vs observed results",
         f"Model: {model_name}",
@@ -1541,9 +1550,9 @@ def plot_heroes(hero_tbl, out_dir, max_copy_plot=None, condition_note=''):
 
     fig.text(
         0.5, 0.025,
-        "Additive + duplicate model; contributions are adjusted for teammates. "
+        textwrap.fill("Additive + duplicate model; contributions are adjusted for teammates. "
         "Duplicate points show the exact incremental value of that added copy. "
-        "Error bars are CI 95%.",
+        "Error bars are CI 95%.", width=100),
         ha="center",
         fontsize=9,
     )
@@ -2617,6 +2626,10 @@ def main():
     )
 
     args = parser.parse_args()
+    if len(args.csv)==1 and Path(args.csv[0]).name=="kingshot_winrates.csv" and (Path(args.csv[0]).parent / "adaptive_state.json").is_file():
+        from kingshot_adaptive import analyze_saved
+        analyze_saved(Path(args.csv[0]).parent,args.top_n)
+        return
     common_method = args.selection_method or "raw"
     common_threshold = 0.05 if args.synergy_threshold is None else args.synergy_threshold
     args.pair_selection_method = args.pair_selection_method or common_method
@@ -2675,11 +2688,7 @@ def main():
         f"unique defender lineups={n_defender_lineups}; "
         f"--side={args.side})"
     )
-    if chosen_side == "defender":
-        print(
-            "Response reversed to defender win probability: "
-            "100 - attacker winrate."
-        )
+    print(f'Response: {chosen_side} win probability. CSV perspective is respected; legacy attacker-only CSVs are converted when needed.')
 
     if not (0 < args.pair_synergy_threshold <= 1):
         raise ValueError("--pair-synergy-threshold must be greater than 0 and at most 1.")
@@ -2920,7 +2929,7 @@ Modeled joiner slots:
 {", ".join(slots)}
 
 Response:
-{"defender win probability = 100 - attacker winrate" if chosen_side == "defender" else "attacker win probability = winrate"}
+{chosen_side} win probability (stored CSV perspective respected; legacy rates converted if necessary)
 
 Heroes detected:
 {", ".join(heroes)}

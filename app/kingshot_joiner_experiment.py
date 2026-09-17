@@ -250,7 +250,10 @@ def _augment_machine_settings(settings_path: Path) -> None:
     defender_profile = _load_json(FIRST_DEFENDER_JSON)
 
     from kingshot_run_history import player_names
+    data['winrate_side'] = WINRATE_SIDE
+    data['varied_side'] = WINRATE_SIDE
     data['player_names'] = player_names(ACTIVE_KINGSHOT_CONFIG)
+    data['configuration'] = copy.deepcopy(ACTIVE_KINGSHOT_CONFIG)
     data["profile_progression"] = {
         "hero_progression_lookup": str(HERO_PROGRESSION_LOOKUP),
         "attacker": {
@@ -443,6 +446,8 @@ def _write_readable_settings(
         "",
     ]
     EXPERIMENT_FOLDER.mkdir(parents=True, exist_ok=True)
+    lines += ["", "Per-formation hero settings (authoritative)", "--------------------------------------------",
+              _pretty(ACTIVE_KINGSHOT_CONFIG["joiner"])]
     SETTINGS_TXT.write_text("\n".join(lines), encoding="utf-8")
     return SETTINGS_TXT
 
@@ -459,6 +464,7 @@ CSV_COLUMNS = [
     "joiner3_def",
     "joiner4_def",
     "winrate",
+    "winrate_side",
 ]
 
 
@@ -661,6 +667,14 @@ def _hybrid_lineups(
 def build_side_lineups() -> tuple[
     list[tuple[str | None, ...]], list[tuple[str | None, ...]]
 ]:
+    if globals().get('ADAPTIVE_CONFIG',{}).get('mode','complete')!='complete':
+        config=ACTIVE_KINGSHOT_CONFIG['joiner'];lineups={}
+        for side,prefix in [('attacker','atk'),('defender','def')]:
+            pools=config[side]['pools'];mapping={h:int(k) for k,values in pools.items() for h in values}
+            cap=max(int(ADAPTIVE_CONFIG['duplicate_limit']),int(ADAPTIVE_CONFIG['standout_max_copies']))
+            adjusted=[(k,[h for h,v in mapping.items() if max(v,cap)==k]) for k in (1,2,3,4)]
+            lineups[side]=_hybrid_lineups(adjusted,config[side]['manual_slots'],prefix)
+        return lineups['attacker'],lineups['defender']
     attacker = _hybrid_lineups(
         (
             (4, joiner_pool_atk_max_4),
@@ -1076,6 +1090,11 @@ def _profile_for_lineup(
         profile, troop_percentages, total_troops, troop_quality, f"{role} troop setup"
     )
     _set_base_stats(profile, base_stat_override, role)
+    from kingshot_profile_template import apply_formation_stats
+    from kingshot_config import load_hero_catalog
+    apply_formation_stats(profile, ACTIVE_KINGSHOT_CONFIG["profiles"]["A" if role == "attacker" else "B"],
+                          ACTIVE_KINGSHOT_CONFIG["joiner"][role],
+                          load_hero_catalog(SCRIPT_FOLDER, ACTIVE_KINGSHOT_CONFIG), role)
     return profile
 
 def _write_json(path: Path, value: Any) -> None:
@@ -1186,6 +1205,9 @@ def _prepare_csv() -> dict[
 ]:
     """Initialize a new CSV or index completed batches for resume mode."""
 
+    if RESUME_FROM_CSV:
+        from kingshot_sequences import prepare_resume_perspective
+        prepare_resume_perspective(OUTPUT_CSV, WINRATE_SIDE)
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     if (
         not RESUME_FROM_CSV
@@ -1275,6 +1297,14 @@ async def run_experiment() -> None:
     """Run every joiner condition and append each batch win rate to the CSV."""
     effective_stats_include_heroes_atk, effective_stats_include_heroes_def = _validate_settings()
 
+    adaptive=None
+    if globals().get('ADAPTIVE_CONFIG',{}).get('mode','complete')=='complete' and (EXPERIMENT_FOLDER/'adaptive_state.json').is_file():
+        if RESUME_FROM_CSV:raise ValueError('This folder contains an adaptive run. Choose a new results folder for Complete mode, or turn Resume off to replace it.')
+        (EXPERIMENT_FOLDER/'adaptive_state.json').unlink()
+        (EXPERIMENT_FOLDER/'adaptive_summary.json').unlink(missing_ok=True)
+    if globals().get('ADAPTIVE_CONFIG',{}).get('mode','complete')!='complete':
+        from kingshot_adaptive import AdaptiveExperiment
+        adaptive=AdaptiveExperiment(build_conditions(),ACTIVE_KINGSHOT_CONFIG,EXPERIMENT_FOLDER,WINRATE_SIDE,SIMULATIONS_PER_BATCH,RESUME_FROM_CSV)
     EXPERIMENT_FOLDER.mkdir(parents=True, exist_ok=True)
 
     settings_path = write_experiment_profile_metadata(
@@ -1352,13 +1382,13 @@ async def run_experiment() -> None:
         flush=True,
     )
     print(
-        f"Preparing {len(conditions)} condition(s), "
-        f"{BATCHES_PER_CONDITION} batch(es) per condition, "
-        f"{SIMULATIONS_PER_BATCH} simulations per batch.",
+        (f"Adaptive candidate universe: {len(conditions)} conditions; the planner selects which to test. " if adaptive else f"Preparing {len(conditions)} conditions, {BATCHES_PER_CONDITION} batches per condition. ")
+        + f"{SIMULATIONS_PER_BATCH} simulations per batch.",
         flush=True,
     )
 
     completed_batches = _prepare_csv()
+    if adaptive:adaptive.recover_csv(OUTPUT_CSV,CSV_COLUMNS)
     target_batches = set(range(1, BATCHES_PER_CONDITION + 1))
     batch_plan = []
     already_completed = 0
@@ -1374,14 +1404,20 @@ async def run_experiment() -> None:
 
     total_target = len(conditions) * BATCHES_PER_CONDITION
     pending = total_target - already_completed
-    if RESUME_FROM_CSV:
+    if RESUME_FROM_CSV and adaptive:
+        print(f"Adaptive resume: {len(adaptive.state['observations'])} completed batches; phase {adaptive.state['stage']}. Remaining work follows the saved adaptive plan.",flush=True)
+    if RESUME_FROM_CSV and not adaptive:
         print(
             f"Resume scan: {already_completed}/{total_target} target batch(es) "
             f"already complete; {pending} remain across {len(batch_plan)} condition(s).",
             flush=True,
         )
 
+    if adaptive:
+        batch_plan=[] if adaptive.state['stage']=='done' else adaptive.batches()
+        print(f'Adaptive {ADAPTIVE_CONFIG["mode"]} mode: screening, finalist refinement, then independent validation.',flush=True)
     if not batch_plan:
+        if adaptive:adaptive.finish()
         print(f"Nothing to run. Results already complete: {OUTPUT_CSV}", flush=True)
         return
 
@@ -1400,7 +1436,7 @@ async def run_experiment() -> None:
                 print(
                     f"Condition {condition_number}/{len(conditions)}: "
                     f"attacker={atk}, defender={defender}; "
-                    f"completed={completed_count}/{BATCHES_PER_CONDITION}",
+                    + (f"phase={adaptive.state['stage']}" if adaptive else f"completed={completed_count}/{BATCHES_PER_CONDITION}"),
                     flush=True,
                 )
 
@@ -1452,10 +1488,11 @@ async def run_experiment() -> None:
 
                 for batch_position, batch in enumerate(missing_batches, start=1):
                     print(
-                        f"  Running batch {batch}/{BATCHES_PER_CONDITION}...",
+                        (f"  Running adaptive batch {batch} ({adaptive.state['stage']})..." if adaptive else f"  Running batch {batch}/{BATCHES_PER_CONDITION}..."),
                         flush=True,
                     )
-                    winrate = await simulator.run_batch()
+                    from kingshot_sequences import recorded_winrate
+                    winrate = recorded_winrate(await simulator.run_batch(), WINRATE_SIDE)
                     write_last_run_stats(
                         LAST_RUN_STATS_FILE,
                         experiment="joiners",
@@ -1481,11 +1518,13 @@ async def run_experiment() -> None:
                         "joiner3_def": defender[2] or "",
                         "joiner4_def": defender[3] or "",
                         "winrate": winrate,
+                        "winrate_side": WINRATE_SIDE,
                     }
+                    if adaptive:adaptive.record(row)
                     _append_csv(row)
 
                     print(
-                        f"  Batch {batch}/{BATCHES_PER_CONDITION}: {winrate}%",
+                        f"  Batch {batch}: {WINRATE_SIDE} win chance = {winrate:g}%",
                         flush=True,
                     )
 
@@ -1497,6 +1536,7 @@ async def run_experiment() -> None:
                             int(DELAY_BETWEEN_BATCHES_SECONDS * 1000)
                         )
 
+    if adaptive:adaptive.finish()
     print(f"Finished. Results saved to: {OUTPUT_CSV}", flush=True)
 
 
@@ -1510,15 +1550,19 @@ def preview_experiment() -> None:
     print(f"Unique attacker joiner lineups: {len(attacker_lineups):,}", flush=True)
     print(f"Unique defender joiner lineups: {len(defender_lineups):,}", flush=True)
     print(f"Combined unique conditions: {len(conditions):,}", flush=True)
-    print(f"Target simulator batches: {len(conditions) * BATCHES_PER_CONDITION:,}", flush=True)
+    if globals().get('ADAPTIVE_CONFIG',{}).get('mode','complete')=='complete':
+        print(f"Target simulator batches: {len(conditions) * BATCHES_PER_CONDITION:,}", flush=True)
+    else:
+        active=ACTIVE_KINGSHOT_CONFIG['joiner'][WINRATE_SIDE];n=len(set(h for v in active['pools'].values() for h in v))
+        maximum=n*int(ADAPTIVE_CONFIG['screen_batches_per_hero'])*int(ADAPTIVE_CONFIG['screen_max_rounds'])+n*int(ADAPTIVE_CONFIG['refinement_batches_per_hero'])+min(len(conditions),int(ADAPTIVE_CONFIG['validation_lineups']))*int(ADAPTIVE_CONFIG['validation_batches'])
+        print(f'Adaptive mode: {ADAPTIVE_CONFIG["mode"]}; shortlist target {ADAPTIVE_CONFIG["target_heroes"]}; budget up to {maximum} batches (stops screening early when resolved).',flush=True)
+        print('Four joiners throughout; calibration stays manual. Finalist duplicates follow the accelerated copy limits and any higher pool limits.',flush=True)
     print(f"Simulations per batch: {SIMULATIONS_PER_BATCH:,}", flush=True)
 
 
 if __name__ == "__main__":
     import sys
-    if "--preview" in sys.argv:
-        print("Checking Kingshot joiner configuration...", flush=True)
-        preview_experiment()
-    else:
-        print("Running Kingshot joiner experiment...", flush=True)
-        run_spyder_compatible(run_experiment)
+    from kingshot_sequence_runner import execute_jobs
+    async def run_sequence():
+        await execute_jobs(ACTIVE_KINGSHOT_CONFIG, 'joiner', preview='--preview' in sys.argv)
+    run_spyder_compatible(run_sequence)

@@ -1010,8 +1010,12 @@ def prepare_profile_json(
     profile["name"] = effective_side
     _normalise_profile_hero_names(profile, hero_stats_lookup, label)
 
+    formation_ready = bool(profile.pop("_formation_stats_ready", False))
     using_progression = hero_progression_lookup is not None and hero_progression_config is not None
-    if using_progression:
+    if formation_ready:
+        applied_hero_stats = [{"hero": name, "final_hero_stats": copy.deepcopy(profile["heroes"][name]["stats"])}
+                              for name in profile.get("selectedHeroes", [])]
+    elif using_progression:
         applied_hero_stats = _apply_configured_progression(
             profile,
             hero_schema_lookup=hero_stats_lookup,
@@ -1577,6 +1581,7 @@ class KingshotSimulatorSession:
         self._closing_browser = False
         self._browser_events: list[str] = []
         self._site_errors: list[str] = []
+        self._loaded_condition: tuple[bytes, bytes, int] | None = None
 
     async def __aenter__(self):
         try:
@@ -1797,10 +1802,14 @@ class KingshotSimulatorSession:
             attacker_info["final_stats_text"] = format_effective_troop_stats(attacker_info["final_stats"])
             defender_info["final_stats_text"] = format_effective_troop_stats(defender_info["final_stats"])
 
-            for attempt in range(2):
+            from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+            attempt = 0
+            display_retries = 0
+            while True:
                 if self.page is None:
                     raise RuntimeError("Simulator session is not open.")
                 page = self.page
+                started = time.monotonic()
                 try:
                     print("  Opening simulator...", flush=True)
                     await page.goto(SITE_URL, wait_until="domcontentloaded")
@@ -1818,6 +1827,7 @@ class KingshotSimulatorSession:
                     print("  Opening Battle tab...", flush=True)
                     await _select_side(page, "Battle")
                     await _set_run_count(page, simulations_per_batch)
+                    self._loaded_condition = (prepared_attacker.read_bytes(), prepared_defender.read_bytes(), simulations_per_batch)
                     return attacker_info, defender_info
                 except Exception as exc:
                     connection_lost = self._connection_was_lost(exc)
@@ -1828,14 +1838,62 @@ class KingshotSimulatorSession:
                             flush=True,
                         )
                         await self._restart_browser()
+                        attempt += 1
                         continue
                     if connection_lost:
                         raise SimulatorError(
                             self._connection_error("loading the simulator condition")
                         ) from exc
+                    if isinstance(exc, (asyncio.TimeoutError, PlaywrightTimeoutError, SimulatorError)):
+                        remaining = self.timeout_seconds - (time.monotonic() - started)
+                        if remaining > 0:
+                            await asyncio.sleep(remaining)
+                        display_retries += 1
+                        print(f"  Simulator page not ready; reloading and repeating this condition "
+                              f"(retry {display_retries}, timeout {self.timeout_seconds:g}s). {exc}", flush=True)
+                        continue
                     raise
 
     async def run_batch(self) -> float:
+        """Retry a missing result without advancing the condition or CSV batch."""
+        from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+        retry = 0
+        while True:
+            started = time.monotonic()
+            try:
+                if retry:
+                    await asyncio.wait_for(self._reload_current_condition(), self.timeout_seconds)
+                return await asyncio.wait_for(self._run_batch_once(), self.timeout_seconds)
+            except (asyncio.TimeoutError, PlaywrightTimeoutError, SimulatorError) as exc:
+                # An early missing-button/parser error must not cause a tight
+                # retry loop. Cancellation is intentionally not caught.
+                remaining = self.timeout_seconds - (time.monotonic() - started)
+                if remaining > 0:
+                    await asyncio.sleep(remaining)
+                retry += 1
+                print(
+                    f"  No simulation result found within {self.timeout_seconds:g}s; "
+                    f"reloading the same condition and repeating this batch "
+                    f"(retry {retry}). {str(exc).strip()}", flush=True,
+                )
+
+    async def _reload_current_condition(self) -> None:
+        """Reload exact prepared inputs, clearing any stale result or queue UI."""
+        if self.page is None or self._loaded_condition is None:
+            raise RuntimeError('No loaded simulator condition is available to retry.')
+        attacker, defender, run_count = self._loaded_condition
+        with tempfile.TemporaryDirectory(prefix='kingshot_retry_') as tmp:
+            atk_path = Path(tmp) / 'attacker_import.json'
+            def_path = Path(tmp) / 'defender_import.json'
+            atk_path.write_bytes(attacker); def_path.write_bytes(defender)
+            await self.page.goto(SITE_URL, wait_until='domcontentloaded')
+            await _dismiss_cookie_dialog(self.page, wait_seconds=0.25)
+            await _import_profile(self.page, 'Attacker', atk_path)
+            await _import_profile(self.page, 'Defender', def_path)
+            await _select_side(self.page, 'Battle')
+            await _set_run_count(self.page, run_count)
+
+    async def _run_batch_once(self) -> float:
         """Run one batch and return attacker win rate in percent."""
         if self.page is None:
             raise RuntimeError("Simulator session is not open.")

@@ -1,4 +1,4 @@
-KINGSHOT EXPERIMENT MANAGER - v1.19
+KINGSHOT EXPERIMENT MANAGER - v1.22
 
 GETTING STARTED ON WINDOWS
 
@@ -29,10 +29,18 @@ Mac users use .command files; Windows users use .bat files.
 
 USING THE APP
 
-1. Players & bonuses: select or edit your player data.
+1. Players, gear & bonuses: name Player A/B and set shared equipment.
 2. Lead + troops / 3. Joiners: choose your experiment settings.
 4. Run & analyze: validate the configuration, preview, then run.
    Create plots when the results are ready.
+
+Player roles are chosen separately for each experiment on pages 2 and 3.
+Gear / Widgets on page 1 sets shared Infantry, Cavalry and Archer gear.
+Stars and active widget buffs remain beside each selected hero.
+
+Joiner modes on page 3: Complete, Fast and Faster. Complete stays the
+default. Accelerated settings control the screening/refinement/validation
+budgets, shortlist and copy limits. See ACCELERATED_JOINERS.txt for details.
 
 Settings are saved in kingshot_config.json. You normally edit them in the
 app, not in a text editor. "Use last saved settings" reloads the saved
@@ -77,3 +85,6 @@ run .venv\Scripts\python.exe app\kingshot_gui.py to see the error.
 
 Keep the project in the same location after setup. If you move it to a new
 location or computer, create a fresh copy and run setup there.
+
+
+See LEAD_TROOP_PLOTS.txt for v1.22 plot/order and player-assignment fixes.

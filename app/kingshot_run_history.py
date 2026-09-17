@@ -5,22 +5,22 @@ import copy
 import json
 import re
 
-FOLDERS = {'lead_troop': 'lead_troop_experiment', 'joiner': 'joiner_experiment'}
+FOLDERS = {'lead_troop': 'lead_troop_experiment', 'joiner': 'joiner_experiment', 'all': 'all_experiments'}
 SNAPSHOT = 'run_configuration.json'
 DEFAULT_FOLDER_LABEL = '(Default folder)'
 
 
-def player_names(cfg):
-    return {side: str(cfg.get('profiles', {}).get(letter, {}).get('name', '')).strip() or side.title()
-            for side, letter in [('attacker', 'A'), ('defender', 'B')]}
+def player_names(cfg,section=None):
+    from kingshot_players import player_names as names
+    return names(cfg,section)
 
 
 def automatic_result_name(cfg, section):
-    names = player_names(cfg)
+    names = player_names(cfg, section if section != "all" else "lead_troop")
     def safe(value):
         return re.sub(r'[<>:"/\\|?*\x00-\x1f\s]+', '_', value).strip(' ._') or 'Player'
     a, b = safe(names['attacker']), safe(names['defender'])
-    if section == 'lead_troop':
+    if section in ('lead_troop','all') or len(cfg.get('experiments',{}).get(section,[])) > 1:
         return f'{a}_vs_{b}'
     def ratio(side):
         return '-'.join(f'{float(x):g}' for x in cfg['joiner'][side]['troop_percentages'])
@@ -52,29 +52,28 @@ def write_snapshot(folder, cfg, section, root):
     folder, root = Path(folder), Path(root)
     saved = copy.deepcopy(cfg)
     folder.mkdir(parents=True, exist_ok=True)
-    # Keep source profiles, not prepared battle profiles (which include bonuses).
-    refs = [(saved['profiles'][k], 'player_file', f'settings_player{k}.json') for k in ('A', 'B')]
-    refs += [(saved['lookups'], k, f'settings_{k}.json') for k in saved['lookups']]
-    for owner, key, filename in refs:
-        source = Path(owner[key])
-        if not source.is_absolute():
-            source = root / source
-        content = source.read_bytes()
-        (folder / filename).write_bytes(content)
-        owner[key] = filename
+    # Configuration contains all imported values; archives are never run inputs.
+    for name in ('kingshot_hero_data.json', 'player_template.json'):
+        (folder / ('reference_' + name)).write_bytes((root / 'json' / name).read_bytes())
     payload = {'experiment_type': section, 'configuration': saved}
     (folder / SNAPSHOT).write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding='utf-8')
 
 
 def previous_runs(results, section):
-    base = Path(results) / FOLDERS[section]
-    if not base.is_dir():
-        return []
-    marker = 'kingshot_winrates' if section == 'joiner' else 'kingshot_lead_troop_winrates'
-    return [p for p in [base, *sorted((p for p in base.iterdir() if p.is_dir()), key=lambda p: p.name.casefold())]
-            if (p / SNAPSHOT).is_file() or (p / 'kingshot_config.json').is_file()
-            or (p / f'{marker}_experiment_settings.json').is_file()
-            or (p / 'experiment_settings.txt').is_file()]
+    from kingshot_sequences import filesystem_folder, display_path
+    results=filesystem_folder(results);base=results/FOLDERS[section]
+    marker='kingshot_winrates' if section=='joiner' else 'kingshot_lead_troop_winrates'
+    candidates=set()
+    if base.is_dir():candidates.update([base,*(p for p in base.iterdir() if p.is_dir()),*(p.parent for p in base.rglob(SNAPSHOT))])
+    all_base=results/FOLDERS['all']
+    if all_base.is_dir():
+        for snapshot in all_base.rglob(SNAPSHOT):
+            try:kind=json.loads(snapshot.read_text(encoding='utf-8-sig')).get('experiment_type')
+            except (OSError,ValueError):continue
+            if kind in (section,'all'):candidates.add(snapshot.parent)
+    return [display_path(p) for p in sorted(candidates,key=lambda p:str(p).casefold())
+            if (p/SNAPSHOT).is_file() or (p/'kingshot_config.json').is_file()
+            or (p/f'{marker}_experiment_settings.json').is_file() or (p/'experiment_settings.txt').is_file()]
 
 
 def _literal(text, label):
@@ -91,12 +90,13 @@ def _literal(text, label):
 
 def import_run(folder, section, current, root):
     from kingshot_config import _migrate_to_current
-    folder = Path(folder)
+    from kingshot_sequences import filesystem_folder
+    folder = filesystem_folder(folder)
     snapshot = folder / SNAPSHOT
     if snapshot.is_file() or (folder / 'kingshot_config.json').is_file():
         raw = json.loads((snapshot if snapshot.is_file() else folder / 'kingshot_config.json').read_text(encoding='utf-8-sig'))
         if snapshot.is_file():
-            if raw.get('experiment_type') != section:
+            if raw.get('experiment_type') not in (section,'all'):
                 raise ValueError('This folder contains a different experiment type.')
             raw = raw['configuration']
         if not isinstance(raw, dict) or not all(k in raw for k in ('profiles', section, 'run', 'battle_setup')):
@@ -104,30 +104,41 @@ def import_run(folder, section, current, root):
         raw = copy.deepcopy(raw)
         for p in raw['profiles'].values():
             path = Path(p['player_file'])
-            if not path.is_absolute():
+            if int(raw.get('schema_version', 1)) < 10 and not path.is_absolute():
                 p['player_file'] = str((folder / path).resolve())
         for k, value in raw.get('lookups', {}).items():
             path = Path(value)
             if not path.is_absolute():
                 raw['lookups'][k] = str((folder / path).resolve())
         saved = _migrate_to_current(Path(root), raw)
-        notes = []
+        notes = list(saved.get("migration_notes", []))
     else:
-        saved, notes = _import_legacy(folder, section, current)
+        saved, notes = _import_legacy(folder, section, current, root)
     merged = copy.deepcopy(current)
     # The other experiment design stays intact; shared inputs necessarily change.
-    for key in ('profiles', 'battle_setup', 'run', 'lookups', 'assignment', 'battle_options', section,
+    for key in ('profiles', 'player_setup', 'battle_setup', 'run', 'lookups', 'assignment', 'battle_options', section,
                 'analysis' if section == 'joiner' else 'plotter'):
         if key in saved:
             merged[key] = copy.deepcopy(saved[key])
+    merged.setdefault('experiments',{})[section]=copy.deepcopy(saved.get('experiments',{}).get(section,[saved[section]]))
+    merged.setdefault('experiment_selection',{})[section]=saved.get('experiment_selection',{}).get(section,0)
+    from kingshot_profile_template import detach_config
+    detach_config(merged, root, read_legacy=False)
+    from kingshot_sequences import ensure_sequences
+    ensure_sequences(merged)
+    merged["migration_notes"] = list(dict.fromkeys(notes + merged.get("migration_notes", [])))
+    notes = merged["migration_notes"]
     return merged, notes
 
 
-def _import_legacy(folder, section, current):
+def _import_legacy(folder, section, current, root):
     cfg = copy.deepcopy(current)
     stem = 'kingshot_winrates' if section == 'joiner' else 'kingshot_lead_troop_winrates'
     path = folder / f'{stem}_experiment_settings.json'
     data = json.loads(path.read_text(encoding='utf-8-sig')) if path.is_file() else {}
+    if isinstance(data.get('configuration'), dict):
+        from kingshot_config import _migrate_to_current
+        return _migrate_to_current(Path(root), data['configuration']), []
     text_path = folder / 'experiment_settings.txt'
     text = text_path.read_text(encoding='utf-8-sig') if text_path.is_file() else ''
     exp = data.get(FOLDERS[section], {})
@@ -189,5 +200,16 @@ def _import_legacy(folder, section, current):
         assign(cfg[section], 'only_matchups', 'ONLY_MATCHUPS')
     if not restored:
         raise ValueError('No supported settings were found in this folder.')
+    # Older files used shared profile progression; reconstruct formation settings.
+    from kingshot_profile_template import initialize_formation
+    for side, letter in [('attacker', 'A'), ('defender', 'B')]:
+        formations = [cfg[section][side]] if section == 'joiner' else cfg[section][side]['formations']
+        for formation in formations:
+            formation.pop('hero_settings', None); formation.pop('add_hero_stats', None)
+            initialize_formation(cfg['profiles'][letter], formation)
+    cfg.setdefault('experiments',{}).pop(section,None)
+    if section=='lead_troop':cfg[section].pop('fixed_side',None)
+    from kingshot_sequences import ensure_sequences
+    ensure_sequences(cfg)
     return cfg, ['This older run has no complete configuration snapshot. Restored the settings available in its files; missing values retain your current settings. Baseline player files and lookup files remain unchanged. Review all tabs before running.',
                  'Restored: ' + ', '.join(restored)]

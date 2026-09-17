@@ -45,6 +45,8 @@ from kingshot_joiner_pools import (
     pools_to_mapping as _pool_mapping,
     set_repeat_limit as _set_repeat_limit,
 )
+from kingshot_profile_template import (read_player, import_player_values, initialize_formation,
+    hero_setting, hero_layers, default_hero_setting, active_widget_rank)
 from kingshot_special_bonuses import apply_special_bonus_preview
 from kingshot_ranges import (
     format_split as _format_split,
@@ -184,47 +186,16 @@ def _zero_stat_vector() -> dict[str, float]:
     return {stat: 0.0 for stat in ("attack", "defense", "lethality", "health")}
 
 
-def _imported_hero_stats(app: "KingshotApp", profile: dict[str, Any], name: str) -> dict[str, float]:
-    zero = _zero_stat_vector()
-    try:
-        path = Path(str(profile.get("player_file", "")).strip())
-        path = path if path.is_absolute() else ROOT / path
-        heroes = json.loads(path.read_text(encoding="utf-8")).get("heroes", {})
-        keys = {name.casefold(), str(app.hero_catalog[name].get("simulator_name", name)).casefold()}
-        entry = next((value for key, value in heroes.items() if str(key).casefold() in keys), {})
-        return {stat: float(entry.get("stats", {}).get(stat, 0.0)) for stat in zero}
-    except Exception:
-        return zero
-
-
-def _profile_additive_rows(
-    app: "KingshotApp", profile: dict[str, Any], leads: dict[str, str]
-) -> dict[str, dict[str, float]]:
-    """Base + enabled stars + passive widget stats + gear, before Special Bonuses."""
-    prog = profile.get("hero_progression", {}) if isinstance(profile, dict) else {}
-    result: dict[str, dict[str, float]] = {}
-    for role, kind in (("inf", "inf"), ("cav", "lanc"), ("arch", "mark")):
-        row = {
-            stat: float(profile.get("base_stats", {}).get(kind, {}).get(stat, 0.0))
-            for stat in ("attack", "defense", "lethality", "health")
-        }
-        name = str(leads.get(role, "")).strip()
-        if name in app.hero_catalog and prog.get("enabled", True):
-            hero = app.hero_catalog[name]
-            gear = profile.get("hero_gear", {}).get(role, {})
-            imported = _imported_hero_stats(app, profile, name) if prog.get("stars_source") == "json" else None
-            layer = layered_hero_stats(
-                hero,
-                profile_hero_config(profile, name),
-                gear,
-                use_stars=bool(prog.get("stars_enabled", True)),
-                use_passive_widget=bool(prog.get("widgets_enabled", True)),
-                use_gear=bool(profile.get("gear_enabled", True)),
-                imported_stats=imported,
-            )
-            for stat in row:
-                row[stat] += float(layer["final_hero_stats"][stat])
-        result[kind] = row
+def _profile_additive_rows(app, profile, leads, formation=None):
+    formation = formation or {'leads':leads}
+    result=copy.deepcopy(profile.get('base_stats',{}))
+    for role,kind in ROLE_TYPES.items():
+        name=leads.get(role,'')
+        if name in app.hero_catalog:
+            setting=hero_setting(profile,formation,role,name)
+            calc=hero_layers(app.hero_catalog[name],setting,formation.get('add_hero_stats',{}).get(role,True))
+            for stat in ('attack','defense','lethality','health'):
+                result.setdefault(kind,{})[stat]=float(result.get(kind,{}).get(stat,0))+calc['final_hero_stats'][stat]
     return result
 
 
@@ -234,6 +205,7 @@ def _formation_widget_bonus_vector(
     leads: dict[str, str],
     widget_buffs: dict[str, bool] | None,
     side: str,
+    formation: dict[str, Any] | None = None,
 ) -> dict[str, float]:
     """Sum active compatible widget Expedition skill percentages by stat."""
     vector = _zero_stat_vector()
@@ -251,7 +223,7 @@ def _formation_widget_bonus_vector(
         values = gear.get("active_expedition_values", [5.0, 7.5, 10.0, 12.5, 15.0])
         if stat not in vector or not isinstance(values, list):
             continue
-        rank = widget_skill_rank(int(profile_hero_config(profile, name).get("widget_level", 0)))
+        rank = active_widget_rank(hero_setting(profile, formation or {"leads":leads}, role, name))
         if rank <= 0:
             continue
         try:
@@ -267,18 +239,20 @@ def _configured_final_stats_pair(
     attacker_widgets: dict[str, bool] | None,
     defender_leads: dict[str, str],
     defender_widgets: dict[str, bool] | None,
+    attacker_formation=None, defender_formation=None,
 ) -> dict[str, dict[str, dict[str, float]]]:
     profiles = app.profiles_tab.current_profiles()
-    atk_profile, def_profile = profiles["A"], profiles["B"]
-    atk_rows = _profile_additive_rows(app, atk_profile, attacker_leads)
-    def_rows = _profile_additive_rows(app, def_profile, defender_leads)
+    roles=app.joiner_tab.players.dump() if hasattr(app.joiner_tab,"players") else {"attacker":"A","defender":"B"}
+    atk_profile, def_profile = profiles[roles["attacker"]], profiles[roles["defender"]]
+    atk_rows = _profile_additive_rows(app, atk_profile, attacker_leads, attacker_formation)
+    def_rows = _profile_additive_rows(app, def_profile, defender_leads, defender_formation)
     atk_rows = apply_special_bonus_preview(
         atk_rows,
         own_special=atk_profile.get("special_bonuses"),
         opponent_special=def_profile.get("special_bonuses"),
         own_enabled=bool(atk_profile.get("special_bonuses_enabled", True)),
         opponent_enabled=bool(def_profile.get("special_bonuses_enabled", True)),
-        own_extra_positive=_formation_widget_bonus_vector(app, atk_profile, attacker_leads, attacker_widgets, "attacker"),
+        own_extra_positive=_formation_widget_bonus_vector(app, atk_profile, attacker_leads, attacker_widgets, "attacker", attacker_formation),
     )
     def_rows = apply_special_bonus_preview(
         def_rows,
@@ -286,7 +260,7 @@ def _configured_final_stats_pair(
         opponent_special=atk_profile.get("special_bonuses"),
         own_enabled=bool(def_profile.get("special_bonuses_enabled", True)),
         opponent_enabled=bool(atk_profile.get("special_bonuses_enabled", True)),
-        own_extra_positive=_formation_widget_bonus_vector(app, def_profile, defender_leads, defender_widgets, "defender"),
+        own_extra_positive=_formation_widget_bonus_vector(app, def_profile, defender_leads, defender_widgets, "defender", defender_formation),
     )
     return {"attacker": atk_rows, "defender": def_rows}
 
@@ -349,6 +323,7 @@ class RunSettingsFrame(ttk.LabelFrame):
             ttk.Entry(self, textvariable=var, width=width).grid(row=0, column=col * 2 + 1, sticky="w", padx=(0, 8), pady=7)
         ttk.Checkbutton(self, text="Resume existing CSV", variable=self.resume).grid(row=1, column=0, columnspan=2, sticky="w", padx=8, pady=(0, 7))
         ttk.Checkbutton(self, text="Headless browser", variable=self.headless).grid(row=1, column=2, columnspan=2, sticky="w", padx=8, pady=(0, 7))
+        ttk.Label(self,text="Batches/condition applies to Complete joiner and Lead + Troops runs. Accelerated budgets are on page 3.",foreground="#555").grid(row=2,column=0,columnspan=8,sticky="w",padx=8,pady=(0,7))
 
     def load(self, cfg: dict[str, Any]) -> None:
         self.sim.set(str(cfg["simulations_per_batch"]))
@@ -447,6 +422,8 @@ class JoinerFixedSetupFrame(ttk.LabelFrame):
         self.lead_vars: dict[str, tk.StringVar] = {}
         self.widget_vars: dict[str, tk.BooleanVar] = {}
         self.widget_boxes: dict[str, ttk.Checkbutton] = {}
+        self.add_vars = {}
+        self.hero_settings = {}
         self.split = tk.StringVar()
         ttk.Label(self, text="Lead heroes").grid(row=0, column=0, columnspan=3, sticky="w", padx=8, pady=(8, 4))
         for row, role in enumerate(("inf", "cav", "arch"), start=1):
@@ -455,17 +432,34 @@ class JoinerFixedSetupFrame(ttk.LabelFrame):
             combo = _hero_combobox(self, var, app.hero_dropdown_choices[role], width=18)
             combo.grid(row=row, column=1, sticky="ew", padx=(0, 5), pady=3)
             wvar = tk.BooleanVar(value=True); self.widget_vars[role] = wvar
-            box = ttk.Checkbutton(self, text="Use widget buff", variable=wvar, command=self._notify)
-            box.grid(row=row, column=2, sticky="w", padx=(3, 8), pady=3); self.widget_boxes[role] = box
+            controls=ttk.Frame(self);controls.grid(row=row,column=2,sticky='w',padx=3,pady=3)
+            box=ttk.Checkbutton(controls,text='Use widget buff',variable=wvar,command=self._notify)
+            box.pack(anchor='w');self.widget_boxes[role]=box
+            line=ttk.Frame(controls);line.pack(fill='x')
+            avar=tk.BooleanVar(value=True);self.add_vars[role]=avar
+            ttk.Checkbutton(line,text='Add hero stats + gear',variable=avar,command=self._notify).pack(side='left')
+            ttk.Button(line,text='Stars…',command=lambda r=role:self.edit_hero(r),width=8).pack(side='left',padx=4)
             combo.bind("<<ComboboxSelected>>", lambda _e, r=role: (self._sync_widget_state(r, auto_enable=True), self._notify()), add="+")
-        ttk.Label(self, text="Troop split Inf/Cav/Arch").grid(row=4, column=0, sticky="w", padx=8, pady=(7, 4))
-        ttk.Entry(self, textvariable=self.split, width=18).grid(row=4, column=1, sticky="w", padx=(0, 8), pady=(7, 4))
+        ttk.Label(self, text="Troop split Inf/Cav/Arch").grid(row=4, column=0, columnspan=2, sticky="w", padx=8, pady=(7, 4))
+        ttk.Entry(self, textvariable=self.split, width=18).grid(row=4, column=2, sticky="w", padx=(0, 8), pady=(7, 4))
         ttk.Label(self, text="Total troops, Tier/TG and root stats are shared on tab 1.", foreground="#555", wraplength=380).grid(row=5, column=0, columnspan=3, sticky="w", padx=8, pady=(3, 8))
         self.columnconfigure(1, weight=1)
 
     def _notify(self) -> None:
         if self.on_change is not None:
             self.on_change()
+
+    def hero_formation(self):
+        return {'leads':{r:v.get() for r,v in self.lead_vars.items()},
+                'hero_settings':copy.deepcopy(self.hero_settings),'add_hero_stats':{r:bool(v.get()) for r,v in self.add_vars.items()}}
+
+    def edit_hero(self,role):
+        name=self.lead_vars[role].get()
+        if name not in self.app.hero_catalog:return
+        profile=self.app.profiles_tab.current_profiles()[self.app.joiner_tab.players.dump()[self.side]]
+        setting=hero_setting(profile,self.hero_formation(),role,name)
+        def saved(value):self.hero_settings[name]=value;self._notify()
+        HeroStatsDialog(self,self.app,name,setting,saved)
 
     def current_selection(self) -> tuple[dict[str, str], dict[str, bool]]:
         return (
@@ -489,6 +483,8 @@ class JoinerFixedSetupFrame(ttk.LabelFrame):
                 self.widget_vars[role].set(True)
 
     def load(self, cfg: dict[str, Any]) -> None:
+        self.hero_settings=copy.deepcopy(cfg.get("hero_settings",{}))
+        for role in ("inf","cav","arch"):self.add_vars[role].set(cfg.get("add_hero_stats",{}).get(role,True))
         self.split.set(_format_split(cfg["troop_percentages"]))
         toggles = cfg.get("widget_buffs", {}) if isinstance(cfg.get("widget_buffs"), dict) else {}
         for role in ("inf","cav","arch"):
@@ -501,6 +497,8 @@ class JoinerFixedSetupFrame(ttk.LabelFrame):
             "leads": {r:self.lead_vars[r].get().strip() for r in ("inf","cav","arch")},
             "widget_buffs": {r:bool(self.widget_vars[r].get()) for r in ("inf","cav","arch")},
             "troop_percentages": _split_text_to_triplet(self.split.get()),
+            "add_hero_stats": {r:bool(v.get()) for r,v in self.add_vars.items()},
+            "hero_settings": copy.deepcopy(self.hero_settings),
         }
 
 
@@ -518,7 +516,6 @@ class BaseStatsDialog(tk.Toplevel):
                 var=tk.StringVar(value=str(values.get(kind,{}).get(stat,0))); self.vars[(kind,stat)]=var
                 ttk.Entry(body,textvariable=var,width=11).grid(row=row,column=col,padx=4,pady=4)
         controls=ttk.Frame(self); controls.pack(fill="x",padx=12,pady=(0,28))
-        ttk.Button(controls,text="Use player JSON",command=self.use_json).pack(side="left")
         ttk.Button(controls,text="Set all…",command=self.set_all).pack(side="left",padx=6)
         ttk.Button(controls,text="Set to min (0)",command=lambda:self.fill(0)).pack(side="left")
         ttk.Button(controls,text="Cancel",command=self.destroy).pack(side="right")
@@ -546,154 +543,103 @@ class BaseStatsDialog(tk.Toplevel):
         except Exception as exc: messagebox.showerror("Invalid base stats",str(exc),parent=self)
 
 
-class HeroLevelDialog(tk.Toplevel):
-    def __init__(self,parent:tk.Widget,app:"KingshotApp",profile:dict[str,Any],kind:str,on_save:Callable[[dict[str,Any]],None]):
-        super().__init__(parent); self.signature=_add_window_signature(self); self.app=app; self.profile=copy.deepcopy(profile); self.kind=kind; self.on_save=on_save
-        self.title("Hero stars" if kind=="stars" else "Passive widgets"); self.transient(parent); self.grab_set()
-        prog=self.profile.setdefault("hero_progression",{}); self.enabled=tk.BooleanVar(value=bool(prog.get("stars_enabled" if kind=="stars" else "widgets_enabled",True)))
-        top=ttk.Frame(self); top.pack(fill="x",padx=10,pady=(10,5))
-        ttk.Checkbutton(top,text=("Apply star stats" if kind=="stars" else "Apply passive widget stats"),variable=self.enabled).pack(side="left")
-        self.status=tk.StringVar(value=("Player JSON hero.stats" if kind=="stars" and prog.get("stars_source")=="json" else "Manual values"))
-        ttk.Label(top,textvariable=self.status,foreground="#555").pack(side="right")
-        self.tree=ttk.Treeview(self,columns=("hero","value"),show="headings",height=16)
-        self.tree.heading("hero",text="Hero"); self.tree.heading("value",text="Stars" if kind=="stars" else "Widget level")
-        self.tree.column("hero",width=210); self.tree.column("value",width=130,anchor="center"); self.tree.pack(fill="both",expand=True,padx=10,pady=5)
-        self.tree.tag_configure("group", font=("TkDefaultFont", 9, "bold"))
-        self.tree.bind("<<TreeviewSelect>>",lambda _e:self.select())
-        edit=ttk.Frame(self); edit.pack(fill="x",padx=10,pady=5); self.selected=tk.StringVar(value="—"); self.value=tk.StringVar()
-        ttk.Label(edit,textvariable=self.selected,width=22).pack(side="left")
-        values=star_step_choices() if kind=="stars" else [str(i) for i in range(11)]
-        self.box=ttk.Combobox(edit,textvariable=self.value,values=values,state="readonly",width=16); self.box.pack(side="left",padx=5)
-        ttk.Button(edit,text="Apply",command=self.apply).pack(side="left")
-        controls=ttk.Frame(self); controls.pack(fill="x",padx=10,pady=(3,28))
-        if kind=="stars": ttk.Button(controls,text="Use player JSON",command=self.use_json).pack(side="left")
-        else: ttk.Button(controls,text="Use player JSON",command=self.widgets_json).pack(side="left")
-        ttk.Button(controls,text="Set all to min",command=lambda:self.set_all(0)).pack(side="left",padx=6)
-        ttk.Button(controls,text="Set all to max",command=lambda:self.set_all(30 if kind=="stars" else 10)).pack(side="left")
-        ttk.Button(controls,text="Cancel",command=self.destroy).pack(side="right")
-        ttk.Button(controls,text="Save",command=self.save).pack(side="right",padx=6)
-        self.refresh(); self.geometry("470x620"); self.wait_window(self)
-    def _value_for(self,name:str)->int:
-        cfg=profile_hero_config(self.profile,name); return int(cfg["star_step" if self.kind=="stars" else "widget_level"])
-    def refresh(self)->None:
-        selected=self.tree.selection()[0] if self.tree.selection() else None; self.tree.delete(*self.tree.get_children())
-        values = self.app.hero_dropdown_all if self.kind == "stars" else self.app.all_heroes
-        for name in values:
-            if _is_hero_group_header(name):
-                self.tree.insert("", "end", iid=f"group:{name}", values=(name, ""), tags=("group",))
-                continue
-            value=self._value_for(name); label=star_step_choices()[value] if self.kind=="stars" else str(value)
-            self.tree.insert("","end",iid=name,values=(name,label))
-        if selected in self.app.all_heroes:self.tree.selection_set(selected); self.select()
-    def select(self)->None:
-        if not self.tree.selection():return
-        name=self.tree.selection()[0]
-        if name.startswith("group:"):
-            self.selected.set("—"); self.value.set(""); self.box.configure(state="disabled"); return
-        self.selected.set(name); value=self._value_for(name)
-        self.value.set(star_step_choices()[value] if self.kind=="stars" else str(value))
-        if self.kind=="widgets" and not self.app.hero_catalog[name].get("exclusive_gear",{}).get("has_widget"):self.box.configure(state="disabled")
-        else:self.box.configure(state="readonly")
-    def apply(self)->None:
-        if not self.tree.selection():return
-        name=self.tree.selection()[0]
-        if name.startswith("group:"): return
-        prog=self.profile.setdefault("hero_progression",{}); item=prog.setdefault("heroes",{}).setdefault(name,{})
-        item["star_step" if self.kind=="stars" else "widget_level"] = parse_star_step_label(self.value.get()) if self.kind=="stars" else int(self.value.get())
-        if self.kind=="stars": prog["stars_source"]="manual"
-        self.status.set("Manual values"); self.enabled.set(True); self.refresh(); self.tree.selection_set(name); self.select()
-    def set_all(self,value:int)->None:
-        prog=self.profile.setdefault("hero_progression",{}); key="star_step" if self.kind=="stars" else "widget_level"
-        prog.setdefault("defaults",{})[key]=value; prog["heroes"]={name:{**cfg, key:value} for name,cfg in prog.get("heroes",{}).items() if isinstance(cfg,dict)}
-        if self.kind=="stars":prog["stars_source"]="manual"
-        self.status.set("Manual values"); self.enabled.set(True); self.refresh()
-    def use_json(self)->None:
-        self.profile.setdefault("hero_progression",{})["stars_source"]="json"; self.enabled.set(True); self.status.set("Player JSON hero.stats")
-        messagebox.showinfo(
-            "Player JSON hero stats",
-            "Current player exports contain combined hero.stats, not a separate star level. "
-            "The JSON button therefore uses those values exactly as the star/hero layer. "
-            "Disable Gear and passive Widgets if the export already includes them.",
-            parent=self,
-        )
-    def widgets_json(self)->None:
-        try:
-            path=Path(self.profile["player_file"]); path=path if path.is_absolute() else ROOT/path
-            heroes=json.loads(path.read_text(encoding="utf-8")).get("heroes",{}); by_key={str(k).casefold():v for k,v in heroes.items()}
-            prog=self.profile.setdefault("hero_progression",{}); out=prog.setdefault("heroes",{})
-            prog.setdefault("defaults",{})["widget_level"]=0
-            for name in self.app.all_heroes:
-                entry=by_key.get(name.casefold(),{}); out.setdefault(name,{})["widget_level"]=int(entry.get("widget_level",0) or 0)
-            self.enabled.set(True); self.status.set("Values copied from player JSON"); self.refresh()
-        except Exception as exc:messagebox.showerror("Could not load widgets",str(exc),parent=self)
-    def save(self)->None:
-        prog=self.profile.setdefault("hero_progression",{}); prog["stars_enabled" if self.kind=="stars" else "widgets_enabled"]=bool(self.enabled.get())
-        prog["enabled"]=bool(prog.get("stars_enabled") or prog.get("widgets_enabled") or self.profile.get("gear_enabled"))
-        self.on_save(self.profile); self.destroy()
-
-
-class GearDialog(tk.Toplevel):
-    def __init__(self,parent:tk.Widget,profile:dict[str,Any],on_save:Callable[[dict[str,Any]],None]):
-        super().__init__(parent); self.signature=_add_window_signature(self); self.profile=copy.deepcopy(profile); self.on_save=on_save; self.title("Hero gear"); self.transient(parent); self.grab_set()
-        self.enabled=tk.BooleanVar(value=bool(self.profile.get("gear_enabled",True))); self.vars={}
-        top=ttk.Frame(self); top.pack(fill="x",padx=10,pady=(10,0)); ttk.Checkbutton(top,text="Apply hero gear stats",variable=self.enabled).pack(side="left")
-        notebook=ttk.Notebook(self); notebook.pack(fill="both",expand=True,padx=10,pady=6)
-        for role in ("inf","cav","arch"):
-            frame=ttk.Frame(notebook); notebook.add(frame,text=ROLE_LABELS[role])
-            for col,label in enumerate(("Piece","Quality","Gear XP (0–100)","Mastery")):ttk.Label(frame,text=label).grid(row=0,column=col,padx=5,pady=5)
-            for row,slot in enumerate(GEAR_SLOTS,start=1):
-                piece=self.profile.get("hero_gear",{}).get(role,{}).get(slot,{})
-                ttk.Label(frame,text=slot.title()).grid(row=row,column=0,padx=5,pady=4,sticky="w")
-                quality=str(piece.get("quality","none")).casefold()
-                display_xp=gear_enhancement_to_xp(quality,piece.get("enhancement",0))
-                for col,(field,default,values) in enumerate((("quality","none",["None","Mythic","Red"]),("enhancement",display_xp,None),("mastery",0,None)),start=1):
-                    var=tk.StringVar(value=str(piece.get(field,default)).title() if field=="quality" else str(default if field=="enhancement" else piece.get(field,default))); self.vars[(role,slot,field)]=var
-                    if values: ttk.Combobox(frame,textvariable=var,values=values,state="readonly",width=12).grid(row=row,column=col,padx=5,pady=4)
-                    else: ttk.Entry(frame,textvariable=var,width=12).grid(row=row,column=col,padx=5,pady=4)
-        ttk.Label(self,text="Red gear automatically adds 100 effective enhancement levels to the displayed 0–100 XP.",foreground="#555").pack(anchor="w",padx=12,pady=(0,4))
-        controls=ttk.Frame(self); controls.pack(fill="x",padx=10,pady=(0,28))
-        ttk.Button(controls,text="Use player JSON",command=self.use_json).pack(side="left")
-        ttk.Button(controls,text="Set all to min",command=lambda:self.fill(False)).pack(side="left",padx=6)
-        ttk.Button(controls,text="Set all to max",command=lambda:self.fill(True)).pack(side="left")
-        ttk.Button(controls,text="Cancel",command=self.destroy).pack(side="right"); ttk.Button(controls,text="Save",command=self.save).pack(side="right",padx=6)
-        self.geometry("690x450"); self.wait_window(self)
-    def fill(self,maxed:bool)->None:
-        values=("Red","100","20") if maxed else ("None","0","0")
-        for role in ("inf","cav","arch"):
-            for slot in GEAR_SLOTS:
-                for field,value in zip(("quality","enhancement","mastery"),values):self.vars[(role,slot,field)].set(value)
-        self.enabled.set(True)
-    def use_json(self)->None:
-        try:
-            path=Path(self.profile["player_file"]); path=path if path.is_absolute() else ROOT/path
-            data=json.loads(path.read_text(encoding="utf-8")); gear=data.get("hero_gear")
-            if not isinstance(gear,dict):
-                self.fill(False); messagebox.showinfo("No gear block","This player JSON has no separate hero_gear block, so gear was set to minimum (zero).",parent=self); return
-            self.profile["hero_gear"]=copy.deepcopy(gear)
-            for role in ("inf","cav","arch"):
-                for slot in GEAR_SLOTS:
-                    piece=gear.get(role,{}).get(slot,{})
-                    quality=str(piece.get("quality","none")).casefold()
-                    self.vars[(role,slot,"quality")].set(quality.title())
-                    self.vars[(role,slot,"enhancement")].set(str(gear_enhancement_to_xp(quality,piece.get("enhancement",0))))
-                    self.vars[(role,slot,"mastery")].set(str(piece.get("mastery",0)))
-            self.enabled.set(True)
-        except Exception as exc:messagebox.showerror("Could not load gear",str(exc),parent=self)
-    def save(self)->None:
+class PlayerGearDialog(tk.Toplevel):
+    def __init__(self,parent,profile,on_save):
+        super().__init__(parent);self.profile=copy.deepcopy(profile);self.on_save=on_save
+        self.title((profile.get('name') or 'Player')+' — Gear / Widgets');self.transient(parent);self.grab_set()
+        body=ttk.Frame(self);body.pack(fill='both',expand=True,padx=12,pady=12)
+        ttk.Label(body,text='One equipment set per troop type. It follows this player across heroes and experiments.',wraplength=620).pack(anchor='w',pady=5)
+        notebook=ttk.Notebook(body);notebook.pack(fill='both',expand=True)
+        self.vars={};self.enabled={};self.widget={};self.passive={}
+        for role in ('inf','cav','arch'):
+            frame=ttk.Frame(notebook,padding=10);notebook.add(frame,text=ROLE_LABELS[role])
+            self.enabled[role]=tk.BooleanVar(value=profile.get('gear_enabled_by_role',{}).get(role,True))
+            ttk.Checkbutton(frame,text='Add this gear',variable=self.enabled[role]).grid(row=0,column=0,columnspan=4,sticky='w',pady=5)
+            for col,label in enumerate(('Piece','Quality','Gear XP (0–100)','Mastery')):ttk.Label(frame,text=label).grid(row=1,column=col,padx=8,pady=5)
+            for row,slot in enumerate(GEAR_SLOTS,2):
+                piece=profile.get('hero_gear',{}).get(role,{}).get(slot,{})
+                q=str(piece.get('quality','none')).lower()
+                ttk.Label(frame,text=slot.title()).grid(row=row,column=0,sticky='w',padx=8,pady=5)
+                for col,(field,value) in enumerate([('quality',q.title()),('enhancement',str(gear_enhancement_to_xp(q,piece.get('enhancement',0)))),('mastery',str(piece.get('mastery',0)))],1):
+                    var=tk.StringVar(value=value);self.vars[role,slot,field]=var
+                    control=ttk.Combobox(frame,textvariable=var,values=['None','Mythic','Red'],state='readonly',width=14) if field=='quality' else ttk.Entry(frame,textvariable=var,width=14)
+                    control.grid(row=row,column=col,padx=8,pady=5)
+            row=ttk.Frame(frame);row.grid(row=7,column=0,columnspan=4,sticky='w',pady=8)
+            ttk.Button(row,text='Gear minimum',command=lambda r=role:self.fill(r,False)).pack(side='left')
+            ttk.Button(row,text='Gear maximum',command=lambda r=role:self.fill(r,True)).pack(side='left',padx=8)
+            row=ttk.Frame(frame);row.grid(row=8,column=0,columnspan=4,sticky='w',pady=8)
+            ttk.Label(row,text='Widget level').pack(side='left')
+            self.widget[role]=tk.StringVar(value=str(profile.get('widget_levels',{}).get(role,10)))
+            ttk.Combobox(row,textvariable=self.widget[role],values=list(range(11)),state='readonly',width=6).pack(side='left',padx=8)
+            self.passive[role]=tk.BooleanVar(value=profile.get('widget_stats_by_role',{}).get(role,True))
+            ttk.Checkbutton(row,text='Add passive widget stats',variable=self.passive[role]).pack(side='left')
+        ttk.Label(body,text='Stars and active widget buffs remain beside the selected heroes on pages 2 and 3. Imported aggregate hero totals are retained as-is until you choose a star level.',wraplength=620,foreground='#555').pack(anchor='w',pady=10)
+        buttons=ttk.Frame(body);buttons.pack(fill='x');ttk.Button(buttons,text='Cancel',command=self.destroy).pack(side='right');ttk.Button(buttons,text='Save',command=self.save).pack(side='right',padx=8)
+        self.resizable(False,False);self.wait_window(self)
+    def fill(self,role,maxed):
+        for slot in GEAR_SLOTS:
+            for field,value in zip(('quality','enhancement','mastery'),('Red','100','20') if maxed else ('None','0','0')):self.vars[role,slot,field].set(value)
+        self.enabled[role].set(True)
+    def save(self):
         from kingshot_progression import validate_gear_piece
         try:
-            gear={}
-            for role in ("inf","cav","arch"):
-                gear[role]={}
+            for role in ('inf','cav','arch'):
+                gear={}
                 for slot in GEAR_SLOTS:
-                    quality=self.vars[(role,slot,"quality")].get().casefold()
-                    xp=_parse_int(self.vars[(role,slot,"enhancement")].get(),"Gear XP")
-                    piece={"quality":quality,"enhancement":gear_xp_to_enhancement(quality,xp),"mastery":_parse_int(self.vars[(role,slot,"mastery")].get(),"Mastery")}
-                    gear[role][slot]=validate_gear_piece(piece,label=f"{ROLE_LABELS[role]} {slot}")
-            self.profile["hero_gear"]=gear; self.profile["gear_enabled"]=bool(self.enabled.get()); prog=self.profile.setdefault("hero_progression",{}); prog["enabled"]=bool(prog.get("stars_enabled") or prog.get("widgets_enabled") or self.profile["gear_enabled"])
-            self.on_save(self.profile); self.destroy()
-        except Exception as exc:messagebox.showerror("Invalid gear",str(exc),parent=self)
+                    q=self.vars[role,slot,'quality'].get().lower()
+                    gear[slot]=validate_gear_piece({'quality':q,'enhancement':gear_xp_to_enhancement(q,int(self.vars[role,slot,'enhancement'].get())),'mastery':int(self.vars[role,slot,'mastery'].get())},label=ROLE_LABELS[role]+' '+slot)
+                self.profile.setdefault('hero_gear',{})[role]=gear
+                self.profile.setdefault('gear_enabled_by_role',{})[role]=bool(self.enabled[role].get())
+                self.profile.setdefault('widget_levels',{})[role]=int(self.widget[role].get())
+                self.profile.setdefault('widget_stats_by_role',{})[role]=bool(self.passive[role].get())
+            self.profile['shared_gear']=True;self.on_save(self.profile);self.destroy()
+        except (ValueError,TypeError) as exc:messagebox.showerror('Invalid equipment',str(exc),parent=self)
 
+class HeroStatsDialog(tk.Toplevel):
+    def __init__(self,parent,app,name,setting,on_save):
+        super().__init__(parent);self.app,self.name,self.setting,self.on_save=app,name,copy.deepcopy(setting),on_save
+        self.title(name+' — Stars');self.transient(parent);self.grab_set()
+        body=ttk.Frame(self,padding=12);body.pack(fill='both',expand=True)
+        choices=star_step_choices();known=setting.get('imported_stats')
+        self.star=tk.StringVar(value='Imported total — stars unknown' if setting.get('stats_source')=='imported' else choices[int(setting.get('star_step',30))])
+        if known is not None:choices=['Imported total — stars unknown',*choices]
+        ttk.Label(body,text='Stars').pack(anchor='w');box=ttk.Combobox(body,textvariable=self.star,values=choices,state='readonly',width=35);box.pack(fill='x',pady=6)
+        self.enabled=tk.BooleanVar(value=setting.get('stars_enabled',True))
+        ttk.Checkbutton(body,text='Add star stats',variable=self.enabled,command=self.refresh).pack(anchor='w')
+        ttk.Label(body,text=f"Gear and level-{setting.get('widget_level',10)} widget come from this player's settings on page 1.",wraplength=460).pack(anchor='w',pady=10)
+        self.total=ttk.Label(body,wraplength=460);self.total.pack(anchor='w',pady=8)
+        box.bind('<<ComboboxSelected>>',lambda _:(self.enabled.set(True),self.refresh()))
+        buttons=ttk.Frame(body);buttons.pack(fill='x',pady=8);ttk.Button(buttons,text='Cancel',command=self.destroy).pack(side='right');ttk.Button(buttons,text='Save',command=self.save).pack(side='right',padx=8)
+        self.refresh();self.resizable(False,False);self.wait_window(self)
+    def value(self):
+        value=copy.deepcopy(self.setting);imported=self.star.get().startswith('Imported total')
+        value.update(stats_source='imported' if imported else 'manual',stars_enabled=bool(self.enabled.get()))
+        if not imported:value['star_step']=parse_star_step_label(self.star.get())
+        return value
+    def refresh(self):
+        calc=hero_layers(self.app.hero_catalog[self.name],self.value())
+        self.total.configure(text='Hero contribution: '+' / '.join(f'{s}: {calc["final_hero_stats"][s]:g}%' for s in ('attack','defense','lethality','health')))
+    def save(self):
+        value=self.value()
+        for key in ('gear','gear_enabled','widget_level','widget_stats_enabled'):value.pop(key,None)
+        self.on_save(value);self.destroy()
+
+class PlayerAssignmentFrame(ttk.Frame):
+    def __init__(self,parent,app,on_change):
+        super().__init__(parent);self.app=app;self.on_change=on_change;self.attacker=tk.StringVar(value='A')
+        ttk.Label(self,text='Attacking player:').pack(side='left',padx=(0,6))
+        self.buttons=[]
+        for letter in ('A','B'):
+            box=ttk.Radiobutton(self,text='Player '+letter,variable=self.attacker,value=letter,command=self.changed);box.pack(side='left',padx=5);self.buttons.append(box)
+        self.defender=ttk.Label(self);self.defender.pack(side='left',padx=14)
+    def dump(self):return {'attacker':self.attacker.get(),'defender':'B' if self.attacker.get()=='A' else 'A'}
+    def load(self,design):
+        self.attacker.set(design.get('assignment',{}).get('attacker','A'));self.refresh()
+    def refresh(self):
+        profiles=self.app.profiles_tab.current_profiles()
+        for letter,box in zip(('A','B'),self.buttons):box.configure(text=profiles[letter].get('name') or 'Player '+letter)
+        letter=self.dump()['defender'];self.defender.configure(text='Defender: '+(profiles[letter].get('name') or 'Player '+letter))
+    def changed(self):self.refresh();self.on_change()
 
 class MultiHeroDialog(tk.Toplevel):
     def __init__(self, parent: tk.Widget, heroes: list[str], selected: list[str], title: str):
@@ -749,6 +695,10 @@ class FormationDialog(tk.Toplevel):
         self.leads: dict[str, tk.StringVar] = {}
         self.widget_vars: dict[str, tk.BooleanVar] = {}
         self.widget_boxes: dict[str, ttk.Checkbutton] = {}
+        profile=app.profiles_tab.current_profiles()[app.lead_tab.players.dump()[side]]
+        initialize_formation(profile,initial)
+        self.hero_settings=copy.deepcopy(initial["hero_settings"])
+        self.add_vars={}
         stored_widget = initial.get("widget_buffs", {}) if isinstance(initial.get("widget_buffs"), dict) else {}
         for i, role in enumerate(("inf", "cav", "arch"), start=1):
             ttk.Label(body, text=ROLE_LABELS[role]).grid(row=i, column=0, sticky="w", pady=3)
@@ -756,9 +706,14 @@ class FormationDialog(tk.Toplevel):
             combo = _hero_combobox(body, var, app.hero_dropdown_choices[role], width=22)
             combo.grid(row=i, column=1, sticky="ew", pady=3)
             wvar = tk.BooleanVar(value=bool(stored_widget.get(role, True))); self.widget_vars[role] = wvar
-            box = ttk.Checkbutton(body, text="Use widget buff", variable=wvar)
-            box.grid(row=i, column=2, sticky="w", padx=(8, 0), pady=3); self.widget_boxes[role] = box
-            combo.bind("<<ComboboxSelected>>", lambda _e, r=role: self._sync_widget_state(r, auto_enable=True), add="+")
+            controls=ttk.Frame(body);controls.grid(row=i,column=2,sticky='w',padx=8,pady=3)
+            box=ttk.Checkbutton(controls,text='Use widget buff',variable=wvar,command=self.refresh_stats)
+            box.pack(anchor='w');self.widget_boxes[role]=box
+            line=ttk.Frame(controls);line.pack(fill='x')
+            avar=tk.BooleanVar(value=initial['add_hero_stats'].get(role,True));self.add_vars[role]=avar
+            ttk.Checkbutton(line,text='Add hero stats + gear',variable=avar,command=self.refresh_stats).pack(side='left')
+            ttk.Button(line,text='Define…',command=lambda r=role:self.edit_hero(r),width=8).pack(side='left',padx=4)
+            combo.bind("<<ComboboxSelected>>", lambda _e, r=role: (self._sync_widget_state(r, auto_enable=True),self.refresh_stats()), add="+")
 
         self.no_joiners = tk.BooleanVar(value=initial.get("joiners") is None)
         ttk.Checkbutton(body, text="No joiners for this setup", variable=self.no_joiners, command=self._sync_joiner_state).grid(row=4, column=0, columnspan=3, sticky="w", pady=(10, 4))
@@ -771,15 +726,22 @@ class FormationDialog(tk.Toplevel):
             box = _hero_combobox(body, var, app.hero_dropdown_all, width=24)
             box.grid(row=5+i, column=1, columnspan=2, sticky="ew", pady=2); self.joiner_boxes.append(box)
 
-        ttk.Label(body, text="Troop splits and ranges", font=("TkDefaultFont", 9, "bold")).grid(row=9, column=0, columnspan=3, sticky="w", pady=(12, 3))
-        ttk.Label(body, text="One split or range per line. Example: 70:30/30:70/0 - 10", wraplength=430).grid(row=10, column=0, columnspan=3, sticky="w")
+        ttk.Label(body, text="Troop split (fixed)" if getattr(parent,"limit_one",False) else "Troop splits and ranges", font=("TkDefaultFont", 9, "bold")).grid(row=9, column=0, columnspan=3, sticky="w", pady=(12, 3))
+        ttk.Label(body, text="One split only: Infantry / Cavalry / Archers (for example 50/10/40)." if getattr(parent,"limit_one",False) else "One split or range per line. Example: 70:30/30:70/0 - 10", wraplength=430).grid(row=10, column=0, columnspan=3, sticky="w")
         self.variants = tk.Text(body, width=34, height=9)
         self.variants.grid(row=11, column=0, columnspan=3, sticky="nsew", pady=(4, 8))
         source_lines = initial.get("troop_range_lines")
         if not isinstance(source_lines, list) or not source_lines:
             source_lines = [_format_split(x) for x in initial["troop_variants_pct"]]
         self.variants.insert("1.0", "\n".join(str(x) for x in source_lines))
+        self.stats_tree=ttk.Treeview(body,columns=('troop','attack','defense','lethality','health'),show='headings',height=3)
+        for key,label in [('troop','Troop'),('attack','ATK'),('defense','DEF'),('lethality','LETH'),('health','Health')]:
+            self.stats_tree.heading(key,text=label);self.stats_tree.column(key,width=100,anchor='center')
+        ttk.Label(body,text='Final troop stats for this formation',font=('TkDefaultFont',9,'bold')).grid(row=12,column=0,columnspan=3,sticky='w')
+        self.stats_tree.grid(row=13,column=0,columnspan=3,sticky='ew',pady=5)
+        ttk.Label(body,text='Includes own and opposing Pet/City effects and this formation’s active widgets. Troop splits change quantities, not these stat percentages.',wraplength=640,foreground='#555').grid(row=14,column=0,columnspan=3,sticky='w')
         body.columnconfigure(1, weight=1); body.rowconfigure(11, weight=1)
+        self.refresh_stats()
 
         buttons = ttk.Frame(self); buttons.pack(fill="x", padx=12, pady=(0, 28))
         ttk.Button(buttons, text="Cancel", command=self.destroy).pack(side="right")
@@ -787,7 +749,7 @@ class FormationDialog(tk.Toplevel):
         self._sync_joiner_state()
         for role in ("inf", "cav", "arch"):
             self._sync_widget_state(role, auto_enable=False)
-        self.geometry("560x630")
+        self.geometry("720x820")
         self.wait_window(self)
 
     def _widget_compatible(self, role: str) -> bool:
@@ -806,6 +768,29 @@ class FormationDialog(tk.Toplevel):
             if auto_enable:
                 self.widget_vars[role].set(True)
 
+    def hero_formation(self):
+        return {'leads':{r:v.get() for r,v in self.leads.items()},
+                'widget_buffs':{r:bool(v.get()) for r,v in self.widget_vars.items()},
+                'add_hero_stats':{r:bool(v.get()) for r,v in self.add_vars.items()},
+                'hero_settings':copy.deepcopy(self.hero_settings)}
+
+    def edit_hero(self,role):
+        name=self.leads[role].get()
+        if name not in self.app.hero_catalog:return
+        profile=self.app.profiles_tab.current_profiles()[self.app.lead_tab.players.dump()[self.side]]
+        def saved(value):self.hero_settings[name]=value;self.refresh_stats()
+        HeroStatsDialog(self,self.app,name,hero_setting(profile,self.hero_formation(),role,name),saved)
+        self.grab_set()
+
+    def refresh_stats(self):
+        if not hasattr(self,'stats_tree'):return
+        profiles=self.app.profiles_tab.current_profiles()
+        roles=self.app.lead_tab.players.dump();profile=profiles[roles[self.side]];opponent=profiles[roles['defender' if self.side=='attacker' else 'attacker']]
+        formation=self.hero_formation();leads=formation['leads']
+        rows=_profile_additive_rows(self.app,profile,leads,formation)
+        rows=apply_special_bonus_preview(rows,own_special=profile.get('special_bonuses'),opponent_special=opponent.get('special_bonuses'),own_enabled=profile.get('special_bonuses_enabled',True),opponent_enabled=opponent.get('special_bonuses_enabled',True),own_extra_positive=_formation_widget_bonus_vector(self.app,profile,leads,formation['widget_buffs'],self.side,formation))
+        _fill_stats_tree(self.stats_tree,rows)
+
     def _sync_joiner_state(self) -> None:
         state = "disabled" if self.no_joiners.get() else "readonly"
         for box in self.joiner_boxes:
@@ -814,6 +799,8 @@ class FormationDialog(tk.Toplevel):
     def _accept(self) -> None:
         try:
             variants, groups, lines = _parse_variant_lines(self.variants.get("1.0", "end"))
+            if getattr(self.master,"limit_one",False) and len(variants)!=1:
+                raise ValueError("The fixed section accepts one troop split only. Put ranges and variations in the second section.")
             joiners = None if self.no_joiners.get() else [v.get().strip() for v in self.joiners]
             if joiners is not None and (len(joiners) != 4 or any(not x for x in joiners)):
                 raise ValueError("Choose all four joiners or select 'No joiners'.")
@@ -824,6 +811,8 @@ class FormationDialog(tk.Toplevel):
                 "joiners": joiners,
                 "leads": leads,
                 "widget_buffs": {role: bool(self.widget_vars[role].get()) for role in ("inf", "cav", "arch")},
+                "hero_settings": copy.deepcopy(self.hero_settings),
+                "add_hero_stats": {r:bool(v.get()) for r,v in self.add_vars.items()},
                 "troop_variants_pct": variants,
                 "troop_variant_groups": groups,
                 "troop_range_lines": lines,
@@ -845,7 +834,6 @@ class SpecialStatsDialog(tk.Toplevel):
                 var=tk.StringVar(value=str(items[key])); self.vars[(section,key)]=var; ttk.Entry(box,textvariable=var,width=10).grid(row=r,column=1,padx=7,pady=3)
         ttk.Label(body,text="Appointments were removed and are always written as 0.",foreground="#555").grid(row=2,column=0,sticky="w",pady=(6,0))
         controls=ttk.Frame(self); controls.pack(fill="x",padx=12,pady=(0,28))
-        ttk.Button(controls,text="Use player JSON",command=self.use_json).pack(side="left")
         ttk.Button(controls,text="Set to min (0)",command=lambda:self.fill(False)).pack(side="left",padx=6)
         ttk.Button(controls,text="Set to max",command=lambda:self.fill(True)).pack(side="left")
         ttk.Button(controls,text="Cancel",command=self.destroy).pack(side="right"); ttk.Button(controls,text="Save",command=self.save).pack(side="right",padx=6)
@@ -911,115 +899,71 @@ class FinalStatsFrame(ttk.LabelFrame):
 
 
 class ProfileStatsFrame(ttk.LabelFrame):
-    OPTION_LABELS = (
-        ("stars", "Stars"),
-        ("widget_stats", "Widget stats"),
-        ("gear", "Gear"),
-        ("special", "Pet / City buffs"),
-    )
-
-    def __init__(self,parent:tk.Widget,app:"KingshotApp",letter:str,role_label:str,on_change:Callable[[],None]):
-        super().__init__(parent,text=f"Player {letter} — {role_label}"); self.app=app; self.letter=letter; self.profile={}; self.leads={}; self.player_file=tk.StringVar(); self.on_change=on_change
-        FileRow(self,"Player JSON",self.player_file,[("JSON","*.json"),("All files","*.*")]).pack(fill="x",padx=7,pady=7)
-        self.player_name = tk.StringVar()
-        name_row = ttk.Frame(self); name_row.pack(fill='x', padx=7, pady=(0, 7))
-        ttk.Label(name_row, text='Player name', width=14).pack(side='left')
-        ttk.Entry(name_row, textvariable=self.player_name).pack(side='left', fill='x', expand=True)
-        options=ttk.LabelFrame(self,text="Use bonuses")
-        options.pack(fill="x",padx=7,pady=(0,6))
-        self.option_vars:dict[str,tk.BooleanVar]={}
-        for col,(key,label) in enumerate(self.OPTION_LABELS):
-            var=tk.BooleanVar(); self.option_vars[key]=var
-            ttk.Checkbutton(options,text=label,variable=var,command=lambda k=key:self._toggle_option(k)).grid(row=0,column=col,sticky="w",padx=(7 if col==0 else 3,7),pady=5)
-        buttons=ttk.Frame(self); buttons.pack(fill="x",padx=7,pady=(0,5))
-        for text_,method in (("Base Stats…",self.edit_base),("Stars…",self.edit_stars),("Widgets…",self.edit_widgets),("Gear…",self.edit_gear),("Pets / City…",self.edit_special)):
-            ttk.Button(buttons,text=text_,command=method).pack(side="left",padx=(0,5))
-        self.tree=ttk.Treeview(self,columns=("troop","attack","defense","lethality","health"),show="headings",height=3)
-        for key,label,width in (("troop","Troop",105),("attack","Attack",85),("defense","Defense",85),("lethality","Lethality",85),("health","Health",85)):
-            self.tree.heading(key,text=label); self.tree.column(key,width=width,anchor="w" if key=="troop" else "center")
-        self.tree.pack(fill="x",padx=7,pady=(0,7))
-        ttk.Label(self,text="Shown totals: Base + enabled Stars + passive Widget stats + Gear, then enabled Pet/City Special Bonuses (including opponent enemy-down effects). Active lead-widget skill buffs are controlled per formation on tabs 2 and 3 and are not included here.",foreground="#555",wraplength=440).pack(anchor="w",padx=7,pady=(0,7))
-
-    def load(self,profile:dict[str,Any],leads:dict[str,str])->None:
-        self.profile=copy.deepcopy(profile); self.player_file.set(profile["player_file"]); self.leads=copy.deepcopy(leads); self._sync_option_vars()
-        self.player_name.set(profile.get('name', '') or ('Attacker' if self.letter == 'A' else 'Defender'))
-
-    def dump(self)->dict[str,Any]:
-        self.profile['name'] = self.player_name.get().strip()
-        self.profile["player_file"]=self.player_file.get().strip(); return copy.deepcopy(self.profile)
-
-    def _sync_option_vars(self)->None:
-        prog=self.profile.get("hero_progression",{}) if isinstance(self.profile,dict) else {}
-        values={
-            "stars":bool(prog.get("stars_enabled",True)),
-            "widget_stats":bool(prog.get("widgets_enabled",True)),
-            "gear":bool(self.profile.get("gear_enabled",True)),
-            "special":bool(self.profile.get("special_bonuses_enabled",True)),
-        }
-        for key,value in values.items():self.option_vars[key].set(value)
-
-    def _toggle_option(self,key:str)->None:
-        prog=self.profile.setdefault("hero_progression",{})
-        value=bool(self.option_vars[key].get())
-        if key=="stars":prog["stars_enabled"]=value
-        elif key=="widget_stats":prog["widgets_enabled"]=value
-        elif key=="gear":self.profile["gear_enabled"]=value
-        elif key=="special":self.profile["special_bonuses_enabled"]=value
-        prog["enabled"]=bool(prog.get("stars_enabled") or prog.get("widgets_enabled") or self.profile.get("gear_enabled"))
-        self.on_change()
-
-    def _json_data(self)->dict[str,Any]:
-        path=Path(self.player_file.get().strip()); path=path if path.is_absolute() else ROOT/path
-        return json.loads(path.read_text(encoding="utf-8"))
-
-    def _imported_hero(self,name:str)->dict[str,float]:
-        zero={s:0.0 for s in ("attack","defense","lethality","health")}
+    OPTION_LABELS = (("special", "Pet / City buffs"),)
+    def __init__(self,parent,app,letter,role_label,on_change):
+        super().__init__(parent,text=f'Player {letter}')
+        self.app,self.letter,self.on_change=app,letter,on_change
+        self.profile={};self.leads={};self.player_file=tk.StringVar();self.player_name=tk.StringVar()
+        row=FileRow(self,'Player JSON',self.player_file,[("JSON","*.json"),("All files","*.*")]);row.pack(fill='x',padx=7,pady=7)
+        ttk.Button(row,text='Use .json stats',command=self.use_json_stats).pack(side='left',padx=(5,0))
+        row=ttk.Frame(self);row.pack(fill='x',padx=7,pady=5)
+        ttk.Label(row,text='Player name',width=14).pack(side='left');ttk.Entry(row,textvariable=self.player_name).pack(side='left',fill='x',expand=True)
+        self.option_vars={'special':tk.BooleanVar(value=True)}
+        ttk.Checkbutton(self,text='Pet / City buffs',variable=self.option_vars['special'],command=lambda:self._toggle_option('special')).pack(anchor='w',padx=7,pady=5)
+        row=ttk.Frame(self);row.pack(fill='x',padx=7,pady=5)
+        ttk.Button(row,text='Base Stats…',command=self.edit_base).pack(side='left')
+        ttk.Button(row,text='Pets / City…',command=self.edit_special).pack(side='left',padx=6)
+        ttk.Button(row,text='Gear / Widgets…',command=self.edit_gear).pack(side='left')
+        self.tree=ttk.Treeview(self,columns=('troop','attack','defense','lethality','health'),show='headings',height=3)
+        for key,label,width in (('troop','Troop',85),('attack','ATK',70),('defense','DEF',70),('lethality','LETH',70),('health','Health',70)):
+            self.tree.heading(key,text=label);self.tree.column(key,width=width,anchor='center')
+        self.tree.pack(fill='x',padx=7,pady=7)
+        ttk.Label(self,text='Base troop stats + Pet/City buffs. Gear and widget levels are shared by troop type. Set stars and active widget buffs on pages 2 and 3. Player JSON is only read when importing; the saved values remain available after moving or deleting it.',wraplength=440,foreground='#555').pack(anchor='w',padx=7,pady=(0,7))
+    def load(self,profile,leads):
+        self.profile=copy.deepcopy(profile);self.leads=copy.deepcopy(leads)
+        self.player_file.set(profile.get('player_file',''));self.player_name.set(profile.get('name',''))
+        self._sync_option_vars()
+    def dump(self):
+        self.profile['name']=self.player_name.get().strip();self.profile['player_file']=self.player_file.get().strip()
+        return copy.deepcopy(self.profile)
+    def _sync_option_vars(self):self.option_vars['special'].set(self.profile.get('special_bonuses_enabled',True))
+    def _toggle_option(self,key):
+        self.profile['special_bonuses_enabled']=bool(self.option_vars['special'].get());self.on_change()
+    def _additive_rows(self):return copy.deepcopy(self.profile.get('base_stats',{}))
+    def refresh(self,opponent_profile=None):
+        self._sync_option_vars()
+        rows=apply_special_bonus_preview(self._additive_rows(),own_special=self.profile.get('special_bonuses'),opponent_special=(opponent_profile or {}).get('special_bonuses'),own_enabled=self.profile.get('special_bonuses_enabled',True),opponent_enabled=(opponent_profile or {}).get('special_bonuses_enabled',True))
+        _fill_stats_tree(self.tree,rows)
+    def display_rows(self,rows):_fill_stats_tree(self.tree,rows)
+    def _sync_file(self):self.profile['player_file']=self.player_file.get().strip()
+    def _saved(self,value):self.profile=value;self.on_change()
+    def edit_base(self):BaseStatsDialog(self,self.profile,lambda v:(self.profile.__setitem__('base_stats',v),self.on_change()))
+    def edit_special(self):SpecialStatsDialog(self,self.profile,self._saved)
+    def edit_gear(self):PlayerGearDialog(self,self.dump(),self._saved)
+    def use_json_stats(self):
         try:
-            heroes=self._json_data().get("heroes",{}); keys={name.casefold(),str(self.app.hero_catalog[name].get("simulator_name",name)).casefold()}
-            entry=next((v for k,v in heroes.items() if str(k).casefold() in keys),{}); return {s:float(entry.get("stats",{}).get(s,0)) for s in zero}
-        except Exception:return zero
-
-    def _additive_rows(self)->dict[str,dict[str,float]]:
-        prog=self.profile.get("hero_progression",{})
-        result={}
-        for role,kind in (("inf","inf"),("cav","lanc"),("arch","mark")):
-            row={s:float(self.profile.get("base_stats",{}).get(kind,{}).get(s,0)) for s in ("attack","defense","lethality","health")}; name=self.leads.get(role)
-            if name in self.app.hero_catalog and prog.get("enabled",True):
-                hero=self.app.hero_catalog[name]; gear=self.profile.get("hero_gear",{}).get(role,{})
-                imported=self._imported_hero(name) if prog.get("stars_source")=="json" else None
-                layer=layered_hero_stats(hero,profile_hero_config(self.profile,name),gear,use_stars=bool(prog.get("stars_enabled",True)),use_passive_widget=bool(prog.get("widgets_enabled",True)),use_gear=bool(self.profile.get("gear_enabled",True)),imported_stats=imported)
-                for stat in row:row[stat]+=float(layer["final_hero_stats"][stat])
-            result[kind]=row
-        return result
-
-    def refresh(self,opponent_profile:dict[str,Any]|None=None)->None:
-        self._sync_option_vars(); self.tree.delete(*self.tree.get_children())
-        rows=self._additive_rows()
-        rows=apply_special_bonus_preview(
-            rows,
-            own_special=self.profile.get("special_bonuses"),
-            opponent_special=(opponent_profile or {}).get("special_bonuses"),
-            own_enabled=bool(self.profile.get("special_bonuses_enabled",True)),
-            opponent_enabled=bool((opponent_profile or {}).get("special_bonuses_enabled",True)),
-        )
-        _fill_stats_tree(self.tree, rows)
-
-    def display_rows(self, rows: dict[str, dict[str, float]]) -> None:
-        _fill_stats_tree(self.tree, rows)
-
-    def _sync_file(self)->None:self.profile["player_file"]=self.player_file.get().strip()
-    def _saved(self,value:dict[str,Any])->None:self.profile=value; self.on_change()
-    def edit_base(self)->None:self._sync_file(); BaseStatsDialog(self,self.profile,lambda v:(self.profile.__setitem__("base_stats",v),self.on_change()))
-    def edit_stars(self)->None:self._sync_file(); HeroLevelDialog(self,self.app,self.profile,"stars",self._saved)
-    def edit_widgets(self)->None:self._sync_file(); HeroLevelDialog(self,self.app,self.profile,"widgets",self._saved)
-    def edit_gear(self)->None:self._sync_file(); GearDialog(self,self.profile,self._saved)
-    def edit_special(self)->None:self._sync_file(); SpecialStatsDialog(self,self.profile,self._saved)
+            path=Path(self.player_file.get().strip());path=path if path.is_absolute() else ROOT/path
+            data=read_player(path)
+            value=import_player_values(self.dump(),data,self.app.hero_catalog)
+            # Commit both experiment designs before applying the imported values.
+            cfg=copy.deepcopy(self.app.commit_ui());cfg['profiles'][self.letter]=value
+            side='attacker' if self.letter=='A' else 'defender'
+            for section in ('joiner','lead_troop'):
+                items=cfg.get('experiments',{}).get(section,[cfg[section]])
+                for item in items:
+                    side=next(s for s,l in item.get('assignment',{'attacker':'A','defender':'B'}).items() if l==self.letter)
+                    for formation in ([item[side]] if section=='joiner' else item[side]['formations']):initialize_formation(value,formation,imported=True)
+                cfg[section]=copy.deepcopy(items[cfg.get('experiment_selection',{}).get(section,0)])
+            cfg.pop('migration_notes',None)
+            self.app.config_data=cfg;self.app.load_into_ui()
+            self.app.status.set('Player stats imported and stored in the configuration.')
+        except Exception as exc:messagebox.showerror('Could not import player stats',str(exc),parent=self)
 
 
-def _swap_button(parent: tk.Widget, command: Callable[[], None]) -> ttk.Button:
-    ttk.Style(parent).configure('Swap.TButton', font=('TkDefaultFont', 9, 'bold'), anchor='center')
-    button = ttk.Button(parent, text='Swap\nattacker ↔ defender', command=command,
-                        width=19, padding=(8, 12), style='Swap.TButton')
+def _swap_button(parent: tk.Widget, command: Callable[[], None]) -> tk.Button:
+    button = tk.Button(parent, text='Swap\nattacker ↔ defender', command=command,
+                       width=19, padx=8, pady=12, font=('TkDefaultFont', 9, 'bold'),
+                       justify='center', anchor='center', relief='raised', borderwidth=1)
     button.grid(row=0, column=1, padx=8, pady=8)
     return button
 
@@ -1042,10 +986,10 @@ class ProfilesTab(ScrollableFrame):
         self.player_a = ProfileStatsFrame(left, app, 'A', 'attacker', self.refresh_displays)
         self.player_b = ProfileStatsFrame(right, app, 'B', 'defender', self.refresh_displays)
         self.player_a.pack(fill='x'); self.player_b.pack(fill='x')
-        self.atk_setup = SideTroopFrame(left, 'Shared battle setup — attacker', include_split=False)
-        self.def_setup = SideTroopFrame(right, 'Shared battle setup — defender', include_split=False)
+        self.atk_setup = SideTroopFrame(left, 'Troops — Player A', include_split=False)
+        self.def_setup = SideTroopFrame(right, 'Troops — Player B', include_split=False)
         self.atk_setup.pack(fill='x', pady=(10, 0)); self.def_setup.pack(fill='x', pady=(10, 0))
-        _swap_button(players, self.swap_players)
+
 
     def current_profiles(self)->dict[str,dict[str,Any]]:
         return {"A":self.player_a.dump(),"B":self.player_b.dump()}
@@ -1074,14 +1018,17 @@ class ProfilesTab(ScrollableFrame):
         self.player_a.refresh(self.player_b.profile); self.player_b.refresh(self.player_a.profile)
         if hasattr(self.app,"joiner_tab"):
             self.app.joiner_tab.refresh_final_stats()
+        for section in ("joiner_tab","lead_tab"):
+            tab=getattr(self.app,section,None)
+            if tab and hasattr(tab,"players"):tab.players.refresh()
 
     def load(self,cfg:dict[str,Any])->None:
         def leads(side:str)->dict[str,str]:
             items=cfg["lead_troop"][side]["formations"]; return copy.deepcopy(items[0]["leads"] if items else {})
-        self.player_a.load(cfg["profiles"]["A"],leads("attacker")); self.player_b.load(cfg["profiles"]["B"],leads("defender")); self.atk_setup.load(cfg["battle_setup"]["attacker"]); self.def_setup.load(cfg["battle_setup"]["defender"]); self.refresh_displays()
+        self.player_a.load(cfg["profiles"]["A"],leads("attacker")); self.player_b.load(cfg["profiles"]["B"],leads("defender")); self.atk_setup.load(cfg.get("player_setup",{}).get("A",cfg["battle_setup"]["attacker"])); self.def_setup.load(cfg.get("player_setup",{}).get("B",cfg["battle_setup"]["defender"])); self.refresh_displays()
 
     def commit(self,cfg:dict[str,Any])->None:
-        cfg["profiles"]={"A":self.player_a.dump(),"B":self.player_b.dump()}; cfg["assignment"]={"attacker":"A","defender":"B"}; cfg["battle_setup"]={"attacker":self.atk_setup.dump_common(),"defender":self.def_setup.dump_common()}
+        cfg["profiles"]={"A":self.player_a.dump(),"B":self.player_b.dump()}; cfg["assignment"]={"attacker":"A","defender":"B"}; cfg["battle_setup"]={"attacker":self.atk_setup.dump_common(),"defender":self.def_setup.dump_common()}; cfg["player_setup"]={"A":self.atk_setup.dump_common(),"B":self.def_setup.dump_common()}
         cfg["battle_options"]={
             "apply_special_bonuses":bool(cfg["profiles"]["A"].get("special_bonuses_enabled",True) or cfg["profiles"]["B"].get("special_bonuses_enabled",True)),
         }
@@ -1090,6 +1037,7 @@ class FormationListEditor(ttk.LabelFrame):
     def __init__(self, parent: tk.Widget, title: str, app: "KingshotApp", collection: str, side: str, on_change: Callable[[], None] | None = None):
         super().__init__(parent, text=title)
         self.app = app; self.collection = collection; self.side = side; self.on_change = on_change
+        self.limit_one=False
         self.items: list[dict[str, Any]] = []
         self.tree = ttk.Treeview(self, columns=("leads", "widget", "joiners", "ranges", "splits"), show="headings", height=8)
         self.tree.heading("leads", text="Lead formation"); self.tree.heading("widget", text="Widget buffs"); self.tree.heading("joiners", text="Joiners"); self.tree.heading("ranges", text="Ranges"); self.tree.heading("splits", text="Generated splits")
@@ -1100,6 +1048,9 @@ class FormationListEditor(ttk.LabelFrame):
         ttk.Button(buttons, text="Edit…", command=self.edit).pack(side="left", padx=5)
         ttk.Button(buttons, text="Duplicate", command=self.duplicate).pack(side="left")
         ttk.Button(buttons, text="Remove", command=self.remove).pack(side="left", padx=5)
+        ttk.Button(buttons, text="Move up", command=lambda:self.move(-1)).pack(side="left", padx=(12, 5))
+        ttk.Button(buttons, text="Move down", command=lambda:self.move(1)).pack(side="left")
+        self.action_buttons=[w for w in buttons.winfo_children() if isinstance(w,ttk.Button)]
         self.tree.bind("<Double-1>", lambda e: self.edit())
         self.tree.bind("<<TreeviewSelect>>", lambda _e:self._notify(), add="+")
 
@@ -1136,6 +1087,9 @@ class FormationListEditor(ttk.LabelFrame):
 
     def load(self, items: list[dict[str, Any]]) -> None:
         self.items = copy.deepcopy(items)
+        if self.limit_one:
+            for button in self.action_buttons:
+                if button.cget('text')=='Add…':button.configure(state='disabled' if self.items else 'normal')
         for item in self.items:
             toggles=item.get("widget_buffs",{}) if isinstance(item.get("widget_buffs"),dict) else {}
             item["widget_buffs"]={
@@ -1145,6 +1099,7 @@ class FormationListEditor(ttk.LabelFrame):
         self._refresh()
 
     def add(self) -> None:
+        if self.limit_one and self.items:return
         dialog = FormationDialog(self, self.app, None, f"Add {self.collection[:-1]}", self.side)
         if dialog.result:
             self.items.append(dialog.result); self._refresh()
@@ -1160,33 +1115,115 @@ class FormationListEditor(ttk.LabelFrame):
             return
         dialog = FormationDialog(self, self.app, self.items[idx], f"Edit {self.collection[:-1]}", self.side)
         if dialog.result:
-            self.items[idx] = dialog.result; self._refresh()
+            self.items[idx] = dialog.result; self._refresh(); self.tree.selection_set(str(idx)); self.tree.see(str(idx))
 
     def duplicate(self) -> None:
+        if self.limit_one:return
         idx = self.selected_index()
         if idx is not None:
             self.items.insert(idx + 1, copy.deepcopy(self.items[idx])); self._refresh(); self.tree.selection_set(str(idx + 1))
 
+    def move(self, delta: int) -> None:
+        idx = self.selected_index()
+        if idx is None or not 0 <= idx + delta < len(self.items):
+            return
+        other = idx + delta
+        self.items[idx], self.items[other] = self.items[other], self.items[idx]
+        self._refresh()
+        self.tree.selection_set(str(other))
+        self.tree.see(str(other))
+        self._notify()
+
     def remove(self) -> None:
+        if self.limit_one:return
         idx = self.selected_index()
         if idx is not None and messagebox.askyesno("Remove setup", "Remove the selected setup?", parent=self):
             self.items.pop(idx); self._refresh()
 
 
+class ExperimentSelector(ttk.Frame):
+    def __init__(self,parent,owner,section):
+        super().__init__(parent);self.owner=owner;self.section=section
+        self.items=[];self.index=0;self.deleted=[];self.number=tk.StringVar()
+        ttk.Label(self,text='Experiment').pack(side='left',padx=(0,6))
+        self.combo=ttk.Combobox(self,textvariable=self.number,state='readonly',width=14);self.combo.pack(side='left')
+        self.combo.bind('<<ComboboxSelected>>',self.switch)
+        ttk.Button(self,text='Add experiment',command=self.add).pack(side='left',padx=6)
+        self.delete_button=ttk.Button(self,text='Delete experiment',command=self.delete);self.delete_button.pack(side='left')
+        self.undo_button=ttk.Button(self,text='Undo deletion',command=self.undo);self.undo_button.pack(side='left',padx=6)
+    def refresh(self):
+        self.combo.configure(values=[f'{i+1} of {len(self.items)}' for i in range(len(self.items))])
+        self.number.set(f'{self.index+1} of {len(self.items)}')
+        self.delete_button.configure(state='normal' if len(self.items)>1 else 'disabled')
+        self.undo_button.configure(state='normal' if self.deleted else 'disabled')
+    def stash(self):
+        if self.items:self.items[self.index]=copy.deepcopy(self.owner.read_design())
+    def load(self,cfg):
+        from kingshot_sequences import migrate_lead
+        items=cfg.get('experiments',{}).get(self.section)
+        if not items:items=migrate_lead(cfg[self.section]) if self.section=='lead_troop' else [cfg[self.section]]
+        self.items=copy.deepcopy(items);self.index=min(cfg.get('experiment_selection',{}).get(self.section,0),len(items)-1)
+        self.deleted=[];self.owner.load_design(self.items[self.index]);self.refresh()
+    def commit(self,cfg):
+        self.stash();cfg.setdefault('experiments',{})[self.section]=copy.deepcopy(self.items)
+        cfg.setdefault('experiment_selection',{})[self.section]=self.index
+        cfg[self.section]=copy.deepcopy(self.items[self.index])
+    def switch(self,_event=None):
+        index=self.combo.current()
+        try:self.stash()
+        except ValueError as exc:messagebox.showerror('Invalid experiment',str(exc),parent=self);self.refresh();return
+        self.index=index;self.owner.load_design(self.items[index]);self.refresh()
+    def add(self):
+        try:self.stash()
+        except ValueError as exc:messagebox.showerror('Invalid experiment',str(exc),parent=self);return
+        self.items.append(copy.deepcopy(self.items[self.index]));self.index=len(self.items)-1
+        self.owner.load_design(self.items[self.index]);self.refresh()
+    def delete(self):
+        if len(self.items)<2:return
+        self.stash();self.deleted.append((self.index,self.items.pop(self.index)))
+        self.index=min(self.index,len(self.items)-1);self.owner.load_design(self.items[self.index]);self.refresh()
+    def undo(self):
+        if not self.deleted:return
+        self.stash();index,item=self.deleted.pop();self.index=min(index,len(self.items));self.items.insert(self.index,item)
+        self.owner.load_design(item);self.refresh()
+
+
 class LeadTroopTab(ScrollableFrame):
-    def __init__(self, app: "KingshotApp", parent: tk.Widget):
-        super().__init__(parent); self.app=app; root=self.inner
-        topbar=ttk.Frame(root); topbar.pack(fill="x",padx=14,pady=(10,0))
-        ttk.Button(topbar,text="Use last saved settings",command=lambda:self.app.reload_saved_tab("lead_troop")).pack(side="right")
-        ttk.Label(root,text="Total troops, troop Tier/TG, stats and progression are shared on tab 1. Active widget skill use is selected per lead hero inside each formation; incompatible offensive/defensive widgets are disabled automatically. A single Final Stats table is not shown here because each formation has its own hero/widget combination.",foreground="#555",wraplength=1000).pack(fill="x",padx=14,pady=(6,4))
-        self.atk_list=FormationListEditor(root,"Attacker formations",app,"formations","attacker"); self.atk_list.pack(fill="both",expand=True,padx=12,pady=6)
-        self.def_list=FormationListEditor(root,"Defender formations",app,"formations","defender"); self.def_list.pack(fill="both",expand=True,padx=12,pady=(6,12))
-
-    def load(self,cfg:dict[str,Any])->None:
-        sec=cfg["lead_troop"]; self.atk_list.load(sec["attacker"]["formations"]); self.def_list.load(sec["defender"]["formations"])
-
-    def commit(self,cfg:dict[str,Any])->None:
-        sec=cfg["lead_troop"]; sec["attacker"]={"formations":copy.deepcopy(self.atk_list.items)}; sec["defender"]={"formations":copy.deepcopy(self.def_list.items)}
+    def __init__(self,app,parent):
+        super().__init__(parent);self.app=app;root=self.inner;self.fixed_side='attacker'
+        self.selector=ExperimentSelector(root,self,'lead_troop');self.selector.pack(fill='x',padx=12,pady=8)
+        self.players=PlayerAssignmentFrame(root,app,self.roles);self.players.pack(fill='x',padx=12,pady=5)
+        top=ttk.Frame(root);top.pack(fill='x',padx=12)
+        ttk.Button(top,text='Swap attacker / defender roles',command=self.swap_roles).pack(side='left')
+        ttk.Button(top,text='Use last saved settings',command=lambda:app.reload_saved_tab('lead_troop')).pack(side='right')
+        ttk.Label(root,text='First section: one fixed formation and troop split. Second section: the formations and troop splits to vary. The varied side’s win chance is saved and plotted.',wraplength=1000).pack(fill='x',padx=12,pady=6)
+        self.atk_list=FormationListEditor(root,'Fixed attacker',app,'formations','attacker');self.atk_list.pack(fill='both',expand=True,padx=12,pady=6)
+        self.def_list=FormationListEditor(root,'Varied defender',app,'formations','defender');self.def_list.pack(fill='both',expand=True,padx=12,pady=6)
+        self.atk_list.limit_one=True
+        for button in self.atk_list.action_buttons:
+            if button.cget('text') in ('Add…','Duplicate','Remove'):button.configure(state='disabled')
+    def roles(self):
+        from kingshot_sequences import opposite
+        self.atk_list.side=self.fixed_side;self.def_list.side=opposite(self.fixed_side)
+        self.atk_list.configure(text='Fixed '+self.fixed_side+' — one setup')
+        self.def_list.configure(text='Varied '+opposite(self.fixed_side)+' — win chance saved and plotted')
+    def load_design(self,design):
+        from kingshot_sequences import opposite
+        self.players.load(design)
+        self.design=copy.deepcopy(design);self.fixed_side=design.get('fixed_side','attacker');self.roles()
+        self.atk_list.load(design[self.fixed_side]['formations']);self.def_list.load(design[opposite(self.fixed_side)]['formations'])
+    def read_design(self):
+        from kingshot_sequences import opposite
+        item=copy.deepcopy(self.design);item['fixed_side']=self.fixed_side;item['assignment']=self.players.dump()
+        item[self.fixed_side]={'formations':copy.deepcopy(self.atk_list.items)}
+        item[opposite(self.fixed_side)]={'formations':copy.deepcopy(self.def_list.items)}
+        return item
+    def swap_roles(self):
+        from kingshot_sequences import opposite
+        self.fixed_side=opposite(self.fixed_side);self.roles()
+        self.atk_list.load(self.atk_list.items);self.def_list.load(self.def_list.items)
+    def load(self,cfg):self.selector.load(cfg)
+    def commit(self,cfg):self.selector.commit(cfg)
 
 
 class JoinerPoolDialog(tk.Toplevel):
@@ -1271,7 +1308,8 @@ class JoinerPoolSummary(ttk.LabelFrame):
             ttk.Label(self,text=f"{maximum}×",font=("TkDefaultFont",9,"bold"),width=4).grid(row=row,column=0,sticky="nw",padx=(8,3),pady=4)
             label=ttk.Label(self,text="—",wraplength=430,justify="left"); label.grid(row=row,column=1,sticky="ew",padx=3,pady=4); self.labels[maximum]=label
         self.columnconfigure(1,weight=1)
-        ttk.Button(self,text=f"Edit {side_label.casefold()} joiners…",command=self.edit).grid(row=4,column=1,sticky="e",padx=8,pady=(6,8))
+        self.edit_button=ttk.Button(self,text=f"Edit {side_label.casefold()} joiners…",command=self.edit)
+        self.edit_button.grid(row=4,column=1,sticky="e",padx=8,pady=(6,8))
 
     def load(self,pools:dict[str,list[str]])->None:
         self.mapping=_pool_mapping(pools); self.refresh()
@@ -1321,12 +1359,44 @@ class ManualSlotsFrame(ttk.LabelFrame):
         self.sync(); return copy.deepcopy(self.slots)
 
 
+class AdaptiveSettingsDialog(tk.Toplevel):
+    def __init__(self,parent,settings,on_save):
+        super().__init__(parent);self.title('Accelerated joiner settings');self.transient(parent);self.grab_set();self.settings=copy.deepcopy(settings);self.on_save=on_save
+        body=ttk.Frame(self,padding=12);body.pack(fill='both',expand=True);self.vars={}
+        labels=[('target_heroes','Target number of finalists'),('screen_batches_per_hero','Screening batches per hero per round'),('screen_max_rounds','Maximum screening rounds'),('refinement_batches_per_hero','Refinement batches per finalist'),('validation_lineups','Validation teams'),('validation_batches','Batches per validation team'),('duplicate_limit','Allow finalists up to this many copies'),('standout_max_copies','Allow a clear standout up to this many copies'),('seed','Random seed')]
+        for row,(key,label) in enumerate(labels):
+            ttk.Label(body,text=label).grid(row=row,column=0,sticky='w',padx=5,pady=4);var=tk.StringVar(value=str(settings[key]));self.vars[key]=var;ttk.Entry(body,textvariable=var,width=12).grid(row=row,column=1,padx=8,pady=4)
+        ttk.Label(body,text='Fast protects the top-finalist boundary. Faster stops when only a small group remains indistinguishable from the best. At the screening cap, unresolved heroes are retained even if this exceeds the target.\n\nAll tests use four joiners. Calibrate the opponent manually before starting. Screening begins without additional duplicates; finalists use the copy limits above or any higher limit already set in the pool. Validation batches are held out of fitting. Intervals after adaptive selection are approximate.',wraplength=560,foreground='#555').grid(row=10,column=0,columnspan=2,sticky='w',pady=12)
+        buttons=ttk.Frame(body);buttons.grid(row=11,column=0,columnspan=2,sticky='e');ttk.Button(buttons,text='Cancel',command=self.destroy).pack(side='right');ttk.Button(buttons,text='Save',command=self.save).pack(side='right',padx=8)
+        self.resizable(False,False);self.wait_window(self)
+    def save(self):
+        from kingshot_adaptive import validate_options
+        try:
+            value={**self.settings,**{k:int(v.get()) for k,v in self.vars.items()}}
+            errors=validate_options({'sampling':{**value,'mode':'complete'}})
+            if errors:raise ValueError('\n'.join(errors))
+            self.on_save(value);self.destroy()
+        except (ValueError,TypeError) as exc:messagebox.showerror('Invalid accelerated settings',str(exc),parent=self)
+
 class JoinerTab(ScrollableFrame):
     def __init__(self, app: "KingshotApp", parent: tk.Widget):
         super().__init__(parent); self.app=app; root=self.inner
+        self.selector=ExperimentSelector(root,self,'joiner');self.selector.pack(fill='x',padx=12,pady=8)
+        self.players=PlayerAssignmentFrame(root,app,self.refresh_final_stats);self.players.pack(fill='x',padx=12,pady=5)
+        from kingshot_adaptive import DEFAULTS,LABELS
+        self.sampling=copy.deepcopy(DEFAULTS);self.mode=tk.StringVar(value=LABELS['complete'])
+        mode_row=ttk.Frame(root);mode_row.pack(fill='x',padx=12,pady=5)
+        ttk.Label(mode_row,text='Sampling mode:').pack(side='left',padx=(0,8))
+        ttk.Combobox(mode_row,textvariable=self.mode,values=list(LABELS.values()),state='readonly',width=37).pack(side='left')
+        ttk.Button(mode_row,text='Accelerated settings…',command=self.edit_sampling).pack(side='left',padx=8)
+
+        self.varied=tk.StringVar(value='attacker')
+        choose=ttk.Frame(root);choose.pack(fill='x',padx=12,pady=4)
+        ttk.Label(choose,text='Vary joiners and save win chance for:').pack(side='left')
+        for side in ('attacker','defender'):ttk.Radiobutton(choose,text=side.title(),value=side,variable=self.varied,command=self.change_varied).pack(side='left',padx=8)
         topbar=ttk.Frame(root); topbar.pack(fill="x",padx=14,pady=(10,0))
         ttk.Button(topbar,text="Use last saved settings",command=lambda:self.app.reload_saved_tab("joiner")).pack(side="right")
-        ttk.Label(root,text="Total troops, troop Tier/TG, stats and progression are shared on tab 1. Run settings for both experiments are on tab 4.",foreground="#555",wraplength=1000).pack(fill="x",padx=14,pady=(6,4))
+        ttk.Label(root,text="Base stats and troop Tier/TG are shared on tab 1. Gear and widget levels belong to each player. Define stars beside each selected hero. Run settings are on tab 4.",foreground="#555",wraplength=1000).pack(fill="x",padx=14,pady=(6,4))
         sides=ttk.Frame(root); sides.pack(fill="x",padx=12,pady=6)
         self.atk=JoinerFixedSetupFrame(sides,"Attacker fixed setup",app,"attacker",self.refresh_final_stats); self.atk.grid(row=0,column=0,sticky="nsew",padx=(0,6))
         self.deff=JoinerFixedSetupFrame(sides,"Defender fixed setup",app,"defender",self.refresh_final_stats); self.deff.grid(row=0,column=2,sticky="nsew",padx=(6,0)); sides.columnconfigure(0,weight=1); sides.columnconfigure(2,weight=1)
@@ -1345,9 +1415,17 @@ class JoinerTab(ScrollableFrame):
             note="Configured view uses the fixed attacker/defender leads above. Enabled compatible widget skills are included; joiner pool/manual-slot choices do not change these troop-stat totals.",
         ); self.final_stats.pack(fill="x",padx=12,pady=(6,12))
 
+    def edit_sampling(self):
+        def saved(value):self.sampling=value
+        AdaptiveSettingsDialog(self,self.sampling,saved)
+
+    def sampling_value(self):
+        from kingshot_adaptive import LABELS
+        return {**self.sampling,'mode':next(k for k,v in LABELS.items() if v==self.mode.get())}
+
     def _configured_stats(self)->dict[str,dict[str,dict[str,float]]]:
         atk_leads,atk_widgets=self.atk.current_selection(); def_leads,def_widgets=self.deff.current_selection()
-        return _configured_final_stats_pair(self.app,atk_leads,atk_widgets,def_leads,def_widgets)
+        return _configured_final_stats_pair(self.app,atk_leads,atk_widgets,def_leads,def_widgets,self.atk.hero_formation(),self.deff.hero_formation())
 
     def refresh_final_stats(self)->None:
         if hasattr(self,"final_stats"):
@@ -1358,15 +1436,37 @@ class JoinerTab(ScrollableFrame):
 
     def swap_pools(self)->None:
         atk=self.atk_pool.dump(); deff=self.def_pool.dump(); self.atk_pool.load(deff); self.def_pool.load(atk)
+        self.varied.set('defender' if self.varied.get()=='attacker' else 'attacker');self.sync_pool_controls()
+
+    def sync_pool_controls(self):
+        if not hasattr(self,'atk_pool'):return
+        self.atk_pool.edit_button.configure(state='normal' if self.varied.get()=='attacker' else 'disabled')
+        self.def_pool.edit_button.configure(state='normal' if self.varied.get()=='defender' else 'disabled')
+
+    def change_varied(self):
+        active=self.atk_pool if self.varied.get()=='attacker' else self.def_pool
+        inactive=self.def_pool if self.varied.get()=='attacker' else self.atk_pool
+        if not active.mapping:active.load(inactive.dump())
+        inactive.load({str(i):[] for i in (1,2,3,4)});self.sync_pool_controls()
 
     def swap_manual(self)->None:
         atk=self.atk_slots.dump(); deff=self.def_slots.dump(); self.atk_slots.load(deff); self.def_slots.load(atk)
 
-    def load(self,cfg:dict[str,Any])->None:
-        sec=cfg["joiner"]; self.atk.load(sec["attacker"]); self.deff.load(sec["defender"]); self.atk_pool.load(sec["attacker"]["pools"]); self.def_pool.load(sec["defender"]["pools"]); self.atk_slots.load(sec["attacker"]["manual_slots"]); self.def_slots.load(sec["defender"]["manual_slots"]); self.refresh_final_stats()
+    def load(self,cfg):self.selector.load(cfg)
 
-    def commit(self,cfg:dict[str,Any])->None:
-        sec=cfg["joiner"]; atk=self.atk.dump(); deff=self.deff.dump(); atk["pools"]=self.atk_pool.dump(); deff["pools"]=self.def_pool.dump(); atk["manual_slots"]=self.atk_slots.dump(); deff["manual_slots"]=self.def_slots.dump(); sec["attacker"]=atk; sec["defender"]=deff
+    def load_design(self,sec):
+        from kingshot_adaptive import options,LABELS
+        self.sampling=options(sec);self.mode.set(LABELS[self.sampling['mode']])
+        self.players.load(sec)
+        from kingshot_sequences import has_pool
+        self.varied.set(sec.get('varied_side','defender' if has_pool(sec,'defender') and not has_pool(sec,'attacker') else 'attacker'))
+        self.sync_pool_controls()
+        self.atk.load(sec["attacker"]); self.deff.load(sec["defender"]); self.atk_pool.load(sec["attacker"]["pools"]); self.def_pool.load(sec["defender"]["pools"]); self.atk_slots.load(sec["attacker"]["manual_slots"]); self.def_slots.load(sec["defender"]["manual_slots"]); self.refresh_final_stats()
+
+    def commit(self,cfg):self.selector.commit(cfg)
+
+    def read_design(self):
+        atk=self.atk.dump(); deff=self.deff.dump(); atk["pools"]=self.atk_pool.dump(); deff["pools"]=self.def_pool.dump(); atk["manual_slots"]=self.atk_slots.dump(); deff["manual_slots"]=self.def_slots.dump(); return {'attacker':atk,'defender':deff,'varied_side':self.varied.get(),'assignment':self.players.dump(),'sampling':self.sampling_value()}
 
 
 class RunTab(ttk.Frame):
@@ -1376,12 +1476,12 @@ class RunTab(ttk.Frame):
         folders = ttk.LabelFrame(self, text='Results folder names')
         folders.pack(fill='x', padx=12, pady=6)
         self.result_names = {s: tk.StringVar(value='') for s in FOLDERS}
-        for row, (section, label) in enumerate([('lead_troop', 'Lead + Troops'), ('joiner', 'Joiner')]):
+        for row, (section, label) in enumerate([('lead_troop', 'Lead + Troops'), ('joiner', 'Joiner'), ('all','Run all')]):
             ttk.Label(folders, text=label, width=16).grid(row=row, column=0, padx=8, pady=4, sticky='w')
             ttk.Entry(folders, textvariable=self.result_names[section], width=30).grid(row=row, column=1, padx=4, pady=4)
             ttk.Label(folders, text='Blank = automatic player names' + (' + troop ratios' if section == 'joiner' else '')).grid(row=row, column=2, padx=8, sticky='w')
         actions=ttk.LabelFrame(self,text="Workflow"); actions.pack(fill="x",padx=12,pady=6)
-        self.plot_by=tk.StringVar(); self.analysis_side=tk.StringVar(); self.top_n=tk.StringVar()
+        self.winrate_side=tk.StringVar(); self.analysis_side=tk.StringVar(); self.top_n=tk.StringVar()
         self.pair_selection=tk.StringVar(); self.pair_threshold=tk.StringVar()
         self.triple_selection=tk.StringVar(); self.triple_threshold=tk.StringVar()
         self.pair_synergy=tk.BooleanVar(value=True); self.triple_synergy=tk.BooleanVar(value=True)
@@ -1392,8 +1492,6 @@ class RunTab(ttk.Frame):
         ttk.Button(actions,text="Run experiment",command=lambda:app.run_script("kingshot_lead_troop_experiment.py")).grid(row=0,column=2,padx=4,pady=8)
         ttk.Button(actions,text="Create plots",command=self.plot_results).grid(row=0,column=3,padx=4,pady=8)
         ttk.Button(actions,text="Open folder",command=lambda:self.open_results('lead_troop')).grid(row=0,column=4,padx=4,pady=8)
-        ttk.Label(actions,text="Plot by").grid(row=0,column=5,padx=(18,3))
-        ttk.Combobox(actions,textvariable=self.plot_by,values=["defender","attacker"],state="readonly",width=10).grid(row=0,column=6,padx=(0,8))
 
         ttk.Label(actions,text="Joiners",width=16,font=("TkDefaultFont",9,"bold")).grid(row=1,column=0,sticky="w",padx=8,pady=8)
         ttk.Button(actions,text="Preview",command=lambda:app.run_script("kingshot_joiner_experiment.py",["--preview"])).grid(row=1,column=1,padx=4,pady=8)
@@ -1402,8 +1500,6 @@ class RunTab(ttk.Frame):
         ttk.Button(actions,text="Open folder",command=lambda:self.open_results('joiner')).grid(row=1,column=4,padx=4,pady=8)
 
         modelopts=ttk.Frame(actions); modelopts.grid(row=2,column=1,columnspan=6,sticky="w",padx=4,pady=(0,4))
-        ttk.Label(modelopts,text="Model side").grid(row=0,column=0,sticky="w",padx=(4,3),pady=2)
-        ttk.Combobox(modelopts,textvariable=self.analysis_side,values=["auto","attacker","defender"],state="readonly",width=10).grid(row=0,column=1,sticky="w",padx=(0,14),pady=2)
         ttk.Checkbutton(modelopts,text="Pair synergy",variable=self.pair_synergy,command=self._sync_synergy_controls).grid(row=0,column=2,sticky="w",padx=(0,8),pady=2)
         ttk.Label(modelopts,text="Method").grid(row=0,column=3,sticky="w",padx=(0,3),pady=2)
         self.pair_method_box=ttk.Combobox(modelopts,textvariable=self.pair_selection,values=list(self.selection_labels.values()),state="readonly",width=17)
@@ -1422,6 +1518,12 @@ class RunTab(ttk.Frame):
         ttk.Label(modelopts,text="p threshold").grid(row=1,column=5,sticky="w",padx=(0,3),pady=2)
         self.triple_threshold_entry=ttk.Entry(modelopts,textvariable=self.triple_threshold,width=7); self.triple_threshold_entry.grid(row=1,column=6,sticky="w",padx=(0,14),pady=2)
 
+        ttk.Label(actions,text='Both sequences',width=16,font=('TkDefaultFont',9,'bold')).grid(row=3,column=0,padx=8,pady=6,sticky='w')
+        ttk.Button(actions,text='Preview all',command=lambda:app.run_script('kingshot_sequence_runner.py',['all','--mode','preview'])).grid(row=3,column=1,padx=4)
+        ttk.Button(actions,text='Run all',command=lambda:app.run_script('kingshot_sequence_runner.py',['all'])).grid(row=3,column=2,padx=4)
+        ttk.Button(actions,text='Create all plots',command=lambda:app.run_script('kingshot_sequence_runner.py',['all','--mode','plot','--folder',str(self.output_folder('all'))])).grid(row=3,column=3,padx=4)
+        ttk.Button(actions,text='Open folder',command=lambda:self.open_results('all')).grid(row=3,column=4,padx=4)
+        ttk.Label(actions,text='Win chance always belongs to the varied side. Each setup runs in its own numbered folder.',foreground='#555').grid(row=4,column=0,columnspan=7,padx=8,pady=6,sticky='w')
         controls=ttk.Frame(self); controls.pack(fill="x",padx=12,pady=(6,4))
         ttk.Button(controls,text="Save configuration",command=app.save).pack(side="left")
         ttk.Button(controls,text="Validate configuration",command=app.validate).pack(side="left",padx=6)
@@ -1461,7 +1563,7 @@ class RunTab(ttk.Frame):
         self.triple_threshold_entry.configure(state="normal" if triple_on and self._selection_code(self.triple_selection)!="all" else "disabled")
 
     def load(self,cfg:dict[str,Any])->None:
-        self.run.load(cfg["run"]); self.plot_by.set(cfg["plotter"]["plot_by"]); a=cfg["analysis"]; self.analysis_side.set(a["side"])
+        self.run.load(cfg["run"]); self.winrate_side.set(cfg['plotter'].get('winrate_side', 'defender' if cfg['plotter'].get('plot_by') == 'attacker' else 'attacker')); a=cfg["analysis"]; self.analysis_side.set(a["side"])
         legacy_method=a.get("selection_method","raw"); legacy_threshold=a.get("synergy_threshold",a.get("alpha",.05))
         pair_method=a.get("pair_selection_method",legacy_method); triple_method=a.get("triple_selection_method",legacy_method)
         pair_threshold=float(a.get("pair_synergy_threshold",legacy_threshold)); triple_threshold=float(a.get("triple_synergy_threshold",legacy_threshold))
@@ -1480,23 +1582,21 @@ class RunTab(ttk.Frame):
         cfg['result_names'] = {s: v.get().strip() for s, v in self.result_names.items()}
         pair_threshold=0.05 if pair_method=="all" else _parse_float(self.pair_threshold.get(),"Pair synergy p threshold")
         triple_threshold=0.05 if triple_method=="all" else _parse_float(self.triple_threshold.get(),"Triple synergy p threshold")
-        cfg["run"]=self.run.dump(); cfg["plotter"]["plot_by"]=self.plot_by.get(); cfg["analysis"]={"side":self.analysis_side.get(),"selection_method":pair_method,"synergy_threshold":pair_threshold,"pair_selection_method":pair_method,"pair_synergy_threshold":pair_threshold,"triple_selection_method":triple_method,"triple_synergy_threshold":triple_threshold,"pair_synergy":bool(self.pair_synergy.get()),"triple_synergy":bool(self.triple_synergy.get()),"top_n":_parse_int(self.top_n.get(),"Label top joiner combinations")}
+        cfg["run"]=self.run.dump(); cfg["plotter"]["winrate_side"]="defender" if cfg["lead_troop"].get("fixed_side","attacker")=="attacker" else "attacker"; cfg["plotter"]["plot_by"]=cfg["lead_troop"].get("fixed_side","attacker"); cfg["analysis"]={"side":"auto","selection_method":pair_method,"synergy_threshold":pair_threshold,"pair_selection_method":pair_method,"pair_synergy_threshold":pair_threshold,"triple_selection_method":triple_method,"triple_synergy_threshold":triple_threshold,"pair_synergy":bool(self.pair_synergy.get()),"triple_synergy":bool(self.triple_synergy.get()),"top_n":_parse_int(self.top_n.get(),"Label top joiner combinations")}
 
     def plot_results(self)->None:
         try:
             folder = self.output_folder('lead_troop')
         except ValueError as exc:
             messagebox.showerror('Invalid folder name', str(exc), parent=self); return
-        self.app.run_script("kingshot_lead_troop_plotter.py",["--plot-by",self.plot_by.get(), '--experiment-folder', str(folder)])
+        self.app.run_script("kingshot_sequence_runner.py",["lead_troop","--mode","plot","--folder",str(folder)])
 
     def analyze(self)->None:
         try:
             folder = self.output_folder('joiner')
         except ValueError as exc:
             messagebox.showerror('Invalid folder name', str(exc), parent=self); return
-        pair_method=self._selection_code(self.pair_selection); triple_method=self._selection_code(self.triple_selection)
-        pair_threshold="0.05" if pair_method=="all" else self.pair_threshold.get(); triple_threshold="0.05" if triple_method=="all" else self.triple_threshold.get()
-        csv=folder/"kingshot_winrates.csv"; args=[str(csv),"--side",self.analysis_side.get(),"--pair-selection-method",pair_method,"--pair-synergy-threshold",pair_threshold,"--triple-selection-method",triple_method,"--triple-synergy-threshold",triple_threshold,"--top-n",self.top_n.get(),"--existing-output","overwrite",("--pair-synergy" if self.pair_synergy.get() else "--no-pair-synergy"),("--triple-synergy" if self.triple_synergy.get() else "--no-triple-synergy")]; self.app.run_script("kingshot_full_model_analysis.py",args)
+        self.app.run_script("kingshot_sequence_runner.py",["joiner","--mode","plot","--folder",str(folder)])
 
     def append_log(self,text:str)->None:
         self.log.configure(state="normal"); self.log.insert("end",text); self.log.see("end"); self.log.configure(state="disabled")
@@ -1540,11 +1640,14 @@ class KingshotApp(tk.Tk):
         self.lead_tab = LeadTroopTab(self, self.notebook)
         self.joiner_tab = JoinerTab(self, self.notebook)
         self.run_tab = RunTab(self, self.notebook)
-        self.notebook.add(self.profiles_tab, text="1. Players & bonuses")
+        self.notebook.add(self.profiles_tab, text="1. Players, gear & bonuses")
         self.notebook.add(self.lead_tab, text="2. Lead + troops")
         self.notebook.add(self.joiner_tab, text="3. Joiners")
         self.notebook.add(self.run_tab, text="4. Run & analyze")
         self.load_into_ui()
+        self.notebook.bind("<<NotebookTabChanged>>",lambda _:self.profiles_tab.refresh_displays())
+        if self.config_data.get("migration_notes"):
+            self.after(200, lambda: messagebox.showwarning("Review imported hero settings", "\n".join(self.config_data["migration_notes"]), parent=self))
         self.after(100, self._drain_output)
         self.protocol("WM_DELETE_WINDOW", self._close)
 
@@ -1570,7 +1673,7 @@ class KingshotApp(tk.Tk):
         listing.pack(side='left', fill='both', expand=True); scroll.pack(side='right', fill='y')
         base = RESULTS_DIR / FOLDERS[section]
         for folder in folders:
-            listing.insert('end', '(Default folder)' if folder == base else folder.name)
+            listing.insert('end', '(Default folder)' if folder == base else str(folder.relative_to(RESULTS_DIR)))
         listing.selection_set(0)
         def accept(_event=None):
             chosen = listing.curselection()
@@ -1583,7 +1686,7 @@ class KingshotApp(tk.Tk):
                 cfg, notes = import_run(folder, section, old, ROOT)
                 self.config_data = cfg
                 self.load_into_ui()
-                self.run_tab.result_names[section].set(DEFAULT_FOLDER_LABEL if folder == base else folder.name)
+                self.run_tab.result_names[section].set(DEFAULT_FOLDER_LABEL if folder == base else folder.relative_to(RESULTS_DIR).parts[1])
             except Exception as exc:
                 if old is not None:
                     self.config_data = old
@@ -1676,6 +1779,16 @@ class KingshotApp(tk.Tk):
             messagebox.showwarning("Task already running", "Stop or wait for the current task before starting another.", parent=self); return
         if not self.save(quiet=True) or not self.validate(quiet=True):
             return
+        sections={'kingshot_joiner_experiment.py':'joiner','kingshot_lead_troop_experiment.py':'lead_troop'}
+        if filename in sections:
+            kind=sections[filename];args=[kind,'--mode','preview'] if args and '--preview' in args else [kind]
+            filename='kingshot_sequence_runner.py'
+        if filename=='kingshot_sequence_runner.py' and args and '--mode' not in args:
+            from kingshot_sequences import duplicate_groups, SECTIONS
+            duplicates=duplicate_groups(self.config_data,SECTIONS if args[0]=='all' else (args[0],))
+            if duplicates:
+                text='Identical experiments will each run separately:\n'+'\n'.join(kind+': '+', '.join(map(str,ids)) for kind,ids in duplicates)
+                messagebox.showwarning('Duplicate experiments',text,parent=self)
         script = APP_DIR / filename
         if not script.is_file():
             messagebox.showerror("Missing script", f"Could not find {script}", parent=self); return

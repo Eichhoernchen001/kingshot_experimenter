@@ -17,7 +17,7 @@ from kingshot_progression import (
 )
 
 CONFIG_FILENAME = "kingshot_config.json"
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 13
 STAT_NAMES = ("attack", "defense", "lethality", "health")
 JSON_TYPES = {"inf": "inf", "cav": "lanc", "arch": "mark"}
 PET_KEYS = (
@@ -46,7 +46,7 @@ def _special(*, maxed: bool = False) -> dict[str, Any]:
 def _profile(player_file: str, *, configured: bool, maxed: bool) -> dict[str, Any]:
     return {
         "player_file": player_file,
-        "name": "",
+        "name": "Player A" if "playerA" in player_file else "Player B",
         "base_stats": _zero_stats(),
         "special_bonuses": _special(maxed=maxed),
         "hero_progression": {
@@ -54,7 +54,7 @@ def _profile(player_file: str, *, configured: bool, maxed: bool) -> dict[str, An
             "stars_enabled": configured,
             "widgets_enabled": configured,
             "stars_source": "manual",
-            "defaults": {"star_step": 30, "widget_level": 10 if maxed else 0},
+            "defaults": {"star_step": 30, "widget_level": 10},
             "heroes": {},
         },
         "gear_enabled": configured,
@@ -71,7 +71,7 @@ def default_config() -> dict[str, Any]:
             "A": _profile("json/playerA_data.json", configured=True, maxed=True),
             # B defaults to its imported JSON hero values so the supplied baseline
             # remains usable until the user chooses explicit progression settings.
-            "B": _profile("json/playerB_data.json", configured=False, maxed=False),
+            "B": _profile("json/playerB_data.json", configured=True, maxed=False),
         },
         "assignment": {"attacker": "A", "defender": "B"},
         "lookups": {
@@ -287,6 +287,9 @@ def _relocate_bundled_json_paths(root: Path, cfg: dict[str, Any]) -> None:
 def _migrate_to_current(script_folder: Path, raw: dict[str, Any]) -> dict[str, Any]:
     old = _migrate_v1(raw)
     result = _deep_merge(default_config(), old)
+    plotter = result['plotter']
+    plotter['winrate_side'] = plotter.get('winrate_side', 'defender' if plotter.get('plot_by') == 'attacker' else 'attacker')
+    plotter['plot_by'] = 'defender' if plotter['winrate_side'] == 'attacker' else 'attacker'
     result["assignment"] = {"attacker": "A", "defender": "B"}
     lookups = result.setdefault("lookups", {})
     if Path(str(lookups.get("hero_stats", ""))).name == "kingshot_hero_stats_5star.json":
@@ -313,7 +316,9 @@ def _migrate_to_current(script_folder: Path, raw: dict[str, Any]) -> dict[str, A
     for letter, side in (("A", "attacker"), ("B", "defender")):
         profile = result["profiles"][letter]
         old_profile = old_profiles.get(letter, {}) if isinstance(old_profiles.get(letter), dict) else {}
-        json_stats, json_special = _json_profile_values(script_folder, profile["player_file"])
+        json_stats, json_special = (_json_profile_values(script_folder, profile["player_file"])
+                                    if "base_stats" not in old_profile or "special_bonuses" not in old_profile
+                                    else ({}, {}))
         if "base_stats" not in old_profile:
             override = old_setup.get(side, {}).get("base_stat_override") if isinstance(old_setup.get(side), dict) else None
             profile["base_stats"] = (
@@ -417,6 +422,12 @@ def _migrate_to_current(script_folder: Path, raw: dict[str, Any]) -> dict[str, A
     if not analysis.get("pair_synergy", True):
         analysis["triple_synergy"] = False
 
+    from kingshot_profile_template import detach_config
+    detach_config(result, script_folder, read_legacy=int(raw.get("schema_version", 1)) < 10)
+    from kingshot_sequences import ensure_sequences
+    ensure_sequences(result)
+    from kingshot_players import migrate_players
+    migrate_players(result)
     result["schema_version"] = SCHEMA_VERSION
     return result
 
@@ -433,6 +444,12 @@ def load_config(script_folder: Path, *, create_if_missing: bool = False) -> dict
             stats, special = _json_profile_values(Path(script_folder), defaults["profiles"][letter]["player_file"])
             defaults["profiles"][letter]["base_stats"] = stats
             defaults["profiles"][letter]["special_bonuses"] = special
+        from kingshot_profile_template import detach_config
+        detach_config(defaults, script_folder, read_legacy=True)
+        from kingshot_sequences import ensure_sequences
+        ensure_sequences(defaults)
+        from kingshot_players import migrate_players
+        migrate_players(defaults)
         if create_if_missing: save_config(script_folder, defaults)
         return defaults
     try:
@@ -478,7 +495,7 @@ def _check_split(split: Any, label: str, errors: list[str]) -> None:
     if abs(sum(vals)-100.0) > 1e-8: errors.append(f"{label}: troop percentages must sum to 100 (got {sum(vals):g}).")
 
 
-def validate_config(script_folder: Path, cfg: dict[str, Any]) -> tuple[list[str], list[str]]:
+def _validate_single_config(script_folder: Path, cfg: dict[str, Any]) -> tuple[list[str], list[str]]:
     errors: list[str] = []; warnings: list[str] = []; root = Path(script_folder)
     profiles = cfg.get("profiles", {})
     try: heroes = load_hero_catalog(root, cfg)
@@ -489,8 +506,7 @@ def validate_config(script_folder: Path, cfg: dict[str, Any]) -> tuple[list[str]
     for letter in ("A","B"):
         p = profiles.get(letter)
         if not isinstance(p, dict): errors.append(f"Profile {letter} is missing."); continue
-        value = p.get("player_file")
-        if not value or not resolve_path(root,value).is_file(): errors.append(f"Profile {letter}: player JSON not found: {value}")
+        # Player paths are import-history labels, not live run inputs.
         stats = p.get("base_stats")
         if not isinstance(stats, dict): errors.append(f"Profile {letter}: base stats are missing.")
         else:
@@ -533,8 +549,8 @@ def validate_config(script_folder: Path, cfg: dict[str, Any]) -> tuple[list[str]
                 except Exception: errors.append(f"Profile {letter}: {section}.{key} must be between 0 and {maximum}.")
 
     assignment=cfg.get("assignment",{})
-    if assignment != {"attacker": "A", "defender": "B"}:
-        errors.append("Player A must be attacker and Player B must be defender.")
+    if set(assignment.values()) != {"A","B"}:
+        errors.append("Choose a different player for attacker and defender.")
 
     def validate_quality(q: Any,label: str)->None:
         if not isinstance(q,dict): errors.append(f"{label}: troop quality is missing."); return
@@ -643,15 +659,41 @@ def validate_config(script_folder: Path, cfg: dict[str, Any]) -> tuple[list[str]
         if not isinstance(a.get(key, True), bool): errors.append(f"Analysis {key} must be true or false.")
     if not bool(a.get("pair_synergy", True)) and bool(a.get("triple_synergy", False)):
         errors.append("Triple synergy requires pair synergy.")
+    from kingshot_adaptive import validate_options
+    errors.extend(validate_options(cfg["joiner"]))
+    from kingshot_profile_template import validate_formation_stats
+    from kingshot_players import assignment as roles_for
+    for section in ('joiner','lead_troop'):
+        for side,letter in roles_for(cfg[section]).items():
+            formations=[cfg[section][side]] if section=='joiner' else cfg[section][side]['formations']
+            for formation in formations:
+                try: validate_formation_stats(profiles.get(letter, {}), formation, heroes)
+                except Exception as exc: errors.append(f"{side.title()} hero settings: {exc}")
+    warnings.extend(cfg.get("migration_notes", []))
     return errors,warnings
 
 
-def apply_config_to_globals(target: dict[str, Any], section: str) -> dict[str, Any]:
+def validate_config(script_folder, cfg):
+    from kingshot_sequences import ensure_sequences, design_errors
+    cfg=ensure_sequences(copy.deepcopy(cfg))
+    errors=[];warnings=[]
+    for section,items in cfg['experiments'].items():
+        for index,item in enumerate(items,1):
+            single=copy.deepcopy(cfg);single[section]=copy.deepcopy(item)
+            local,notes=_validate_single_config(script_folder,single)
+            errors.extend(f'{section} experiment {index}: {e}' for e in local+design_errors(item,section))
+            warnings.extend(notes)
+    return list(dict.fromkeys(errors)),list(dict.fromkeys(warnings))
+
+
+def apply_config_to_globals(target: dict[str, Any], section: str, config=None, output_folder=None) -> dict[str, Any]:
     """Load the shared v2 config and populate legacy script globals."""
-    script_folder=Path(target["SCRIPT_FOLDER"]); cfg=load_config(script_folder)
+    script_folder=Path(target["SCRIPT_FOLDER"]); cfg=copy.deepcopy(config) if config is not None else load_config(script_folder)
     profiles=cfg["profiles"]
-    atk_letter="A"; def_letter="B"
-    player_files={k:resolve_path(script_folder,v["player_file"]) for k,v in profiles.items()}
+    from kingshot_players import assignment
+    cfg["assignment"]=assignment(cfg[section])
+    atk_letter=cfg["assignment"]["attacker"]; def_letter=cfg["assignment"]["defender"]
+    player_files={k:script_folder / "json/player_template.json" for k in profiles}
     special_atk=copy.deepcopy(profiles[atk_letter]["special_bonuses"]); special_def=copy.deepcopy(profiles[def_letter]["special_bonuses"])
     special_atk["appointment"]={"kingdom":0,"power":0}; special_def["appointment"]={"kingdom":0,"power":0}
     target.update({
@@ -682,16 +724,19 @@ def apply_config_to_globals(target: dict[str, Any], section: str) -> dict[str, A
         "ADD_5STAR_HERO_STATS_ATK":False,"ADD_HERO_GEAR_ATK":False,"ADD_HERO_STATS_ATK":True,
         "ADD_5STAR_HERO_STATS_DEF":False,"ADD_HERO_GEAR_DEF":False,"ADD_HERO_STATS_DEF":True,
     })
-    setup=cfg["battle_setup"]
+    setup={side:cfg.get("player_setup",{}).get(letter,cfg["battle_setup"]["attacker" if letter=="A" else "defender"]) for side,letter in cfg["assignment"].items()}
+    cfg["battle_setup"]=copy.deepcopy(setup)
     target.update({
         "ATTACK_TOTAL_TROOPS":int(setup["attacker"]["total_troops"]),
         "DEFENSE_TOTAL_TROOPS":int(setup["defender"]["total_troops"]),
         "ATTACK_TROOP_QUALITY":copy.deepcopy(setup["attacker"]["troop_quality"]),
         "DEFENSE_TROOP_QUALITY":copy.deepcopy(setup["defender"]["troop_quality"]),
-        "ATTACK_BASE_STAT_OVERRIDE":copy.deepcopy(profiles["A"]["base_stats"]),
-        "DEFENSE_BASE_STAT_OVERRIDE":copy.deepcopy(profiles["B"]["base_stats"]),
+        "ATTACK_BASE_STAT_OVERRIDE":copy.deepcopy(profiles[atk_letter]["base_stats"]),
+        "DEFENSE_BASE_STAT_OVERRIDE":copy.deepcopy(profiles[def_letter]["base_stats"]),
     })
     exp=cfg[section]; run=cfg["run"]
+    from kingshot_adaptive import options
+    target["ADAPTIVE_CONFIG"]=options(exp) if section=="joiner" else {"mode":"complete"}
     target.update({
         "SIMULATIONS_PER_BATCH":int(run["simulations_per_batch"]),"BATCHES_PER_CONDITION":int(run["batches_per_condition"]),
         "RESUME_FROM_CSV":bool(run["resume"]),"HEADLESS":bool(run["headless"]),"TIMEOUT_SECONDS":int(run["timeout_seconds"]),
@@ -709,7 +754,10 @@ def apply_config_to_globals(target: dict[str, Any], section: str) -> dict[str, A
             for i in range(4): target[f"joiner{i+1}_{prefix}"]=list(slots[i])
     else: raise ValueError(f"Unknown config section: {section}")
     from kingshot_run_history import configured_result_folder
-    folder = configured_result_folder(script_folder / 'results', cfg, section)
+    from kingshot_sequences import varied_side
+    target['WINRATE_SIDE'] = varied_side(cfg[section], section)
+    cfg['winrate_side'] = target['WINRATE_SIDE']
+    folder = Path(output_folder) if output_folder is not None else configured_result_folder(script_folder / 'results', cfg, section)
     csv_name = 'kingshot_winrates.csv' if section == 'joiner' else 'kingshot_lead_troop_winrates.csv'
     target.update(EXPERIMENT_FOLDER=folder, OUTPUT_CSV=folder / csv_name,
                   SETTINGS_TXT=folder / 'experiment_settings.txt',

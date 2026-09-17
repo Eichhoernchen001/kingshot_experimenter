@@ -1,0 +1,154 @@
+{
+    "name": "attacker",
+    "stats": {
+        "inf": {
+            "attack": 930.6,
+            "defense": 955.5,
+            "lethality": 1006.9,
+            "health": 1014.1
+        },
+        "lanc": {
+            "attack": 892.1,
+            "defense": 898.5,
+            "lethality": 867.6,
+            "health": 868.9
+        },
+        "mark": {
+            "attack": 934.1,
+            "defense": 926,
+            "lethality": 973.7,
+            "health": 969.4
+        }
+    },
+    "troops": [
+        {
+            "type": "inf",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 400000
+        },
+        {
+            "type": "lanc",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 800000
+        },
+        {
+            "type": "mark",
+            "tier": 11,
+            "fc_level": 8,
+            "quantity": 0
+        }
+    ],
+    "heroes": {
+        "Triton": {
+            "name": "Triton",
+            "type": "inf",
+            "stats": {
+                "attack": 740.43,
+                "defense": 740.43,
+                "lethality": 433.5,
+                "health": 433.5
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Thrud": {
+            "name": "Thrud",
+            "type": "lanc",
+            "stats": {
+                "attack": 644.35,
+                "defense": 644.35,
+                "lethality": 411,
+                "health": 411
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        },
+        "Marlin": {
+            "name": "Marlin",
+            "type": "mark",
+            "stats": {
+                "attack": 440.19,
+                "defense": 440.19,
+                "lethality": 360,
+                "health": 360
+            },
+            "skill_levels": {
+                "1": 5,
+                "2": 5,
+                "3": 5
+            },
+            "widget_level": 0
+        }
+    },
+    "joiners": [
+        {
+            "id": 1,
+            "name": "Fahd",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 6,
+            "name": "Hilde",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 7,
+            "name": "Petra",
+            "skill_levels": {
+                "1": 5
+            }
+        },
+        {
+            "id": 8,
+            "name": "Eric",
+            "skill_levels": {
+                "1": 5
+            }
+        }
+    ],
+    "stats_include_heroes": true,
+    "special_bonuses": {
+        "includedInStats": true,
+        "widgetLevels": {},
+        "petLevels": {
+            "moose": 0,
+            "giant-rhino": 10,
+            "grizzly-bear": 0,
+            "regal-white-lion": 10,
+            "ironclad-war-bear": 10,
+            "alpha-black-panther": 10,
+            "ironclad-war-elephant": 10
+        },
+        "city": {
+            "lethality": 2,
+            "attack": 2,
+            "defense": 2,
+            "health": 2,
+            "enemyAttack": 0,
+            "enemyDefense": 0
+        },
+        "appointment": {
+            "kingdom": 0,
+            "power": 0
+        }
+    },
+    "selectedHeroes": [
+        "Triton",
+        "Thrud",
+        "Marlin"
+    ]
+}
