@@ -1555,7 +1555,7 @@ def preview_experiment() -> None:
     else:
         active=ACTIVE_KINGSHOT_CONFIG['joiner'][WINRATE_SIDE];n=len(set(h for v in active['pools'].values() for h in v))
         maximum=n*int(ADAPTIVE_CONFIG['screen_batches_per_hero'])*int(ADAPTIVE_CONFIG['screen_max_rounds'])+n*int(ADAPTIVE_CONFIG['refinement_batches_per_hero'])+min(len(conditions),int(ADAPTIVE_CONFIG['validation_lineups']))*int(ADAPTIVE_CONFIG['validation_batches'])
-        print(f'Adaptive mode: {ADAPTIVE_CONFIG["mode"]}; shortlist target {ADAPTIVE_CONFIG["target_heroes"]}; budget up to {maximum} batches (stops screening early when resolved).',flush=True)
+        print(f'Adaptive mode: {ADAPTIVE_CONFIG["mode"]}; shortlist target {ADAPTIVE_CONFIG["target_heroes"]}; budget up to {maximum} batches (screening, refinement and validation can stop early).',flush=True)
         print('Four joiners throughout; calibration stays manual. Finalist duplicates follow the accelerated copy limits and any higher pool limits.',flush=True)
     print(f"Simulations per batch: {SIMULATIONS_PER_BATCH:,}", flush=True)
 

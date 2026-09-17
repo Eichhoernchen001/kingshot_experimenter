@@ -17,7 +17,7 @@ from kingshot_progression import (
 )
 
 CONFIG_FILENAME = "kingshot_config.json"
-SCHEMA_VERSION = 13
+SCHEMA_VERSION = 14
 STAT_NAMES = ("attack", "defense", "lethality", "health")
 JSON_TYPES = {"inf": "inf", "cav": "lanc", "arch": "mark"}
 PET_KEYS = (

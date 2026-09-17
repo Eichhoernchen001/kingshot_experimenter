@@ -1361,18 +1361,26 @@ class ManualSlotsFrame(ttk.LabelFrame):
 
 class AdaptiveSettingsDialog(tk.Toplevel):
     def __init__(self,parent,settings,on_save):
-        super().__init__(parent);self.title('Accelerated joiner settings');self.transient(parent);self.grab_set();self.settings=copy.deepcopy(settings);self.on_save=on_save
+        super().__init__(parent);self.title('Accelerated joiner settings');self.transient(parent);self.grab_set()
+        from kingshot_adaptive import options
+        settings=options({'sampling':settings});self.settings=copy.deepcopy(settings);self.on_save=on_save
         body=ttk.Frame(self,padding=12);body.pack(fill='both',expand=True);self.vars={}
-        labels=[('target_heroes','Target number of finalists'),('screen_batches_per_hero','Screening batches per hero per round'),('screen_max_rounds','Maximum screening rounds'),('refinement_batches_per_hero','Refinement batches per finalist'),('validation_lineups','Validation teams'),('validation_batches','Batches per validation team'),('duplicate_limit','Allow finalists up to this many copies'),('standout_max_copies','Allow a clear standout up to this many copies'),('seed','Random seed')]
+        labels=[('target_heroes','Target number of finalists'),('screen_batches_per_hero','Screening batches per hero per round'),('screen_max_rounds','Maximum screening rounds'),('refinement_batches_per_hero','Maximum refinement batches per finalist'),('refinement_min_batches_per_hero','Minimum refinement batches per finalist'),('decision_batch_size','Batches between reassessments'),('practical_tolerance_pp','Practical tolerance (percentage points)'),('validation_lineups','Maximum validation teams'),('validation_batches','Maximum batches per validation team'),('duplicate_limit','Allow finalists up to this many copies'),('standout_max_copies','Test promising heroes up to this many copies'),('seed','Random seed')]
         for row,(key,label) in enumerate(labels):
             ttk.Label(body,text=label).grid(row=row,column=0,sticky='w',padx=5,pady=4);var=tk.StringVar(value=str(settings[key]));self.vars[key]=var;ttk.Entry(body,textvariable=var,width=12).grid(row=row,column=1,padx=8,pady=4)
-        ttk.Label(body,text='Fast protects the top-finalist boundary. Faster stops when only a small group remains indistinguishable from the best. At the screening cap, unresolved heroes are retained even if this exceeds the target.\n\nAll tests use four joiners. Calibrate the opponent manually before starting. Screening begins without additional duplicates; finalists use the copy limits above or any higher limit already set in the pool. Validation batches are held out of fitting. Intervals after adaptive selection are approximate.',wraplength=560,foreground='#555').grid(row=10,column=0,columnspan=2,sticky='w',pady=12)
-        buttons=ttk.Frame(body);buttons.grid(row=11,column=0,columnspan=2,sticky='e');ttk.Button(buttons,text='Cancel',command=self.destroy).pack(side='right');ttk.Button(buttons,text='Save',command=self.save).pack(side='right',padx=8)
+        row=len(labels)
+        ttk.Label(body,text='Heroes to test first (comma-separated)').grid(row=row,column=0,sticky='w',padx=5,pady=4)
+        self.interests=tk.StringVar(value=', '.join(settings.get('heroes_of_interest',[])))
+        ttk.Entry(body,textvariable=self.interests,width=30).grid(row=row,column=1,sticky='ew',padx=8,pady=4)
+        ttk.Label(body,text='Optional, e.g. Yang, Petra, Chenko, Amane. Only names in the pool are used. This changes test priority, never the expected effect.',wraplength=610,foreground='#555').grid(row=row+1,column=0,columnspan=2,sticky='w',padx=5,pady=4)
+        ttk.Label(body,text='Fast uses conservative model uncertainty to stop. Faster may also stop after a stable recommendation. Strong and weak heroes are reassessed throughout refinement. A provisional fixed slot retains challenge teams, and promising heroes get extra-copy tests before a standout is confirmed.\n\nBudgets are ceilings; calibration remains manual. All tests use four joiners. Validation is excluded from fitting. Selection intervals are approximate; early stopping does not prove a global optimum. Old checkpoints resume their original algorithm.',wraplength=610,foreground='#555').grid(row=row+2,column=0,columnspan=2,sticky='w',pady=10)
+        buttons=ttk.Frame(body);buttons.grid(row=row+3,column=0,columnspan=2,sticky='e');ttk.Button(buttons,text='Cancel',command=self.destroy).pack(side='right');ttk.Button(buttons,text='Save',command=self.save).pack(side='right',padx=8)
         self.resizable(False,False);self.wait_window(self)
     def save(self):
         from kingshot_adaptive import validate_options
         try:
             value={**self.settings,**{k:int(v.get()) for k,v in self.vars.items()}}
+            value['heroes_of_interest']=list(dict.fromkeys(x.strip() for x in self.interests.get().split(',') if x.strip()))
             errors=validate_options({'sampling':{**value,'mode':'complete'}})
             if errors:raise ValueError('\n'.join(errors))
             self.on_save(value);self.destroy()

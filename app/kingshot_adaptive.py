@@ -11,7 +11,9 @@ from scipy.stats import norm
 
 DEFAULTS=dict(mode='complete',target_heroes=6,screen_batches_per_hero=5,screen_max_rounds=5,
               refinement_batches_per_hero=20,validation_lineups=30,validation_batches=3,
-              duplicate_limit=2,standout_max_copies=4,seed=20260916)
+              duplicate_limit=2,standout_max_copies=4,seed=20260916,
+              heroes_of_interest=[],refinement_min_batches_per_hero=6,
+              decision_batch_size=12,practical_tolerance_pp=2)
 LABELS={'complete':'Complete — all combinations','fast':'Fast — conservative shortlist','faster':'Faster — early shortlist'}
 
 def options(design):return {**DEFAULTS,**design.get('sampling',{})}
@@ -20,12 +22,17 @@ def validate_options(design):
     if o['mode'] not in LABELS:return ['Unknown joiner sampling mode.']
     limits={'target_heroes':(2,20),'screen_batches_per_hero':(1,100),'screen_max_rounds':(1,100),
             'refinement_batches_per_hero':(1,200),'validation_lineups':(2,200),'validation_batches':(1,100),
-            'duplicate_limit':(1,4),'standout_max_copies':(1,4),'seed':(0,2147483647)}
+            'duplicate_limit':(1,4),'standout_max_copies':(1,4),'seed':(0,2147483647),
+            'refinement_min_batches_per_hero':(1,200),'decision_batch_size':(4,100),'practical_tolerance_pp':(0,20)}
     for key,(lo,hi) in limits.items():
         try:
             v=int(o[key])
             if v!=float(o[key]) or not lo<=v<=hi:raise ValueError
         except (ValueError,TypeError):errors.append(f'{key} must be an integer from {lo} to {hi}.')
+    interests=o.get('heroes_of_interest',[])
+    if not isinstance(interests,list) or any(not isinstance(h,str) or not h.strip() for h in interests):
+        errors.append('Heroes to test first must be a list of hero names.')
+    elif len(interests)>20:errors.append('Choose at most 20 heroes to test first.')
     if o['mode']!='complete':
         pools=[s for s in ('attacker','defender') if any(design[s].get('pools',{}).values())]
         if len(pools)!=1:errors.append('Accelerated mode needs a joiner pool on exactly one side.')
@@ -47,7 +54,9 @@ def atomic_json(path,value):
     path=Path(path);temp=path.with_name(path.name+'.tmp')
     temp.write_text(json.dumps(value,indent=2,ensure_ascii=False,allow_nan=False),encoding='utf8');temp.replace(path)
 
-class AdaptiveExperiment:
+class LegacyAdaptiveExperiment:
+    ENGINE_VERSION=2
+    STATE_VERSION=1
     def __init__(self,conditions,cfg,folder,side,trials,resume=True):
         self.conditions=[tuple(c) for c in conditions];self.cfg=copy.deepcopy(cfg);self.o=options(cfg['joiner'])
         self.folder=Path(folder);self.path=self.folder/'adaptive_state.json';self.side=side;self.trials=int(trials)
@@ -68,7 +77,13 @@ class AdaptiveExperiment:
         for profile in profiles.values():
             for key in ('name','player_file','input_values_embedded'):profile.pop(key,None)
         signature={'design':cfg['joiner'],'profiles':profiles,'player_setup':cfg.get('player_setup',cfg['battle_setup']),
-                   'trials':self.trials,'side':side,'conditions':conditions,'analysis':{k:cfg.get('analysis',{}).get(k,True) for k in ('pair_synergy','triple_synergy')},'engine_version':2}
+                   'trials':self.trials,'side':side,'conditions':conditions,'analysis':{k:cfg.get('analysis',{}).get(k,True) for k in ('pair_synergy','triple_synergy')},'engine_version':self.ENGINE_VERSION}
+        if self.ENGINE_VERSION>=3:
+            signature['effective_options']=self.o
+        else:
+            signature['design']=copy.deepcopy(signature['design'])
+            for key in ('heroes_of_interest','refinement_min_batches_per_hero','decision_batch_size','practical_tolerance_pp'):
+                signature['design'].get('sampling',{}).pop(key,None)
         fingerprint=hashlib.sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest()
         if resume and self.path.is_file():
             self.state=json.loads(self.path.read_text(encoding='utf8'))
@@ -76,7 +91,7 @@ class AdaptiveExperiment:
         else:
             old=self.folder/'kingshot_winrates.csv'
             if resume and old.is_file() and old.stat().st_size>250:raise ValueError('This folder has results without an adaptive checkpoint. Use a new folder or turn Resume off.')
-            self.state=dict(version=1,fingerprint=fingerprint,mode=self.o['mode'],stage='screen',round=0,queue=[],cursor=0,
+            self.state=dict(version=self.STATE_VERSION,fingerprint=fingerprint,mode=self.o['mode'],stage='screen',round=0,queue=[],cursor=0,
                             observations=[],history=[],keep=[],standout=None,seed=int(self.o['seed']),side=side,trials=self.trials,
                             conditions=[list(c) for c in conditions],heroes=self.names,fixed_copies=self.fixed,options=self.o)
         self.rng=np.random.default_rng(self.state['seed'])
@@ -180,6 +195,14 @@ class AdaptiveExperiment:
         if self.state['stage']=='done':analyze_saved(self.folder)
 
 
+def AdaptiveExperiment(conditions,cfg,folder,side,trials,resume=True):
+    from kingshot_adaptive_focus import FocusedAdaptiveExperiment
+    saved=Path(folder)/'adaptive_state.json'
+    old=resume and saved.is_file() and json.loads(saved.read_text(encoding='utf8')).get('version',1)==1
+    if old:print('Resuming legacy adaptive checkpoint with its original algorithm and budgets. Use a new results folder for focused sampling.',flush=True)
+    engine=LegacyAdaptiveExperiment if old else FocusedAdaptiveExperiment
+    return engine(conditions,cfg,folder,side,trials,resume)
+
 def analyze_saved(folder,top_n=None):
     """Existing-style plots plus independent validation; validation never enters fitting."""
     import pandas as pd
@@ -220,6 +243,11 @@ def analyze_saved(folder,top_n=None):
     for i in np.argsort(-pred):
         lineup='/'.join(x for x in plan.conditions[i][plan.offset:plan.offset+4] if x)
         ranked.append(dict(condition=int(i+1),lineup=lineup,predicted_pct=float(pred[i]*100),observed_pct=float(np.mean(groups[i])*100) if i in groups else None,batches=len(groups.get(i,[])),eligible_finalist=i in eligible))
+    validation_groups=grouped(validation)
+    for row in ranked:
+        values=validation_groups.get(row['condition']-1,[])
+        row['validation_observed_pct']=float(np.mean(values)*100) if values else None
+        row['validation_batches']=len(values)
     pd.DataFrame(ranked).to_csv(out/'ranked_lineup_predictions.csv',index=False)
     pd.DataFrame([r for r in ranked if r['eligible_finalist']][:top_n]).to_csv(out/'top_model_predicted_lineups.csv',index=False)
     # Descriptive unpenalized estimates only for identifiable contrasts.
@@ -266,6 +294,16 @@ def analyze_saved(folder,top_n=None):
             notes.append(f'{layer.title()} synergy: {missing or "all"} requested effects are not independently identifiable from the sampled teams. Unavailable effects are omitted; regularization is used only for prediction.')
     vg=grouped(validation);vids=list(vg);actual=np.array([np.mean(vg[i]) for i in vids]);prediction=pred[vids];mse=float(np.mean((actual-prediction)**2));variance=float(np.var(actual))
     scores=dict(rmse_pp=math.sqrt(mse)*100,r2=1-mse/variance if variance>1e-12 else None,validation_conditions=len(vids),validation_batches=len(validation),training_batches=len(train),total_batches=len(state['observations']),mode=state['mode'],retained_heroes=[plan.names[i] for i in state['keep']],winrate_side=plan.side)
+    if state.get('validated_best_index') is not None:
+        best=int(state['validated_best_index']);recommended=int(frozen['recommended_index'])
+        scores['recommended_lineup']='/'.join(plan.conditions[recommended][plan.offset:plan.offset+4])
+        scores['best_observed_validation_lineup']='/'.join(plan.conditions[best][plan.offset:plan.offset+4])
+        scores['best_observed_validation_pct']=float(np.mean(vg[best])*100)
+        if scores['rmse_pp']>max(5,2*float(plan.o['practical_tolerance_pp'])):
+            notes.append('Validation error is large compared with the requested practical tolerance. Increase the refinement budget or use Complete before trusting small differences between predicted winners.')
+    scores.update(engine_version=state.get('version',1),stop_reason=state.get('stop_reason','fixed legacy budget'),standout=plan.names[state['standout']] if state['standout'] is not None else None)
+    if state.get('version',1)>=2:
+        atomic_json(out/'adaptive_decisions.json',state.get('decisions',[]))
     atomic_json(out/'validation_metrics.json',scores)
     pd.DataFrame([dict(condition=i+1,lineup='/'.join(x for x in plan.conditions[i][plan.offset:plan.offset+4] if x),predicted_pct=pred[i]*100,observed_pct=np.mean(vg[i])*100,batches=len(vg[i])) for i in vids]).to_csv(out/'validation_predictions.csv',index=False)
     fig,ax=plt.subplots(figsize=(9,7));ax.scatter(prediction*100,actual*100);lo=min(actual.min(),prediction.min())*100;hi=max(actual.max(),prediction.max())*100;ax.plot([lo,hi],[lo,hi],color='black')

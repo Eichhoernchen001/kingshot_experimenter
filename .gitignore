@@ -1,0 +1,20 @@
+# Installed dependencies and generated Python files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated runs, diagnostics, and release archives
+/results/
+*.log
+*.zip
+/last_run_stats.json
+
+# Local editable settings and optional personal player imports
+/kingshot_config.json
+/json/local_players/
+
+# OS metadata
+.DS_Store
+Thumbs.db
